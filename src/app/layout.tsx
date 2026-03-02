@@ -22,14 +22,47 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "LEB Monitor — Live Conflict Feed",
+  metadataBase: new URL("https://leb-news-monitor.vercel.app"),
+  title: {
+    default: "LEB Monitor — Live Conflict Feed",
+    template: "%s | LEB Monitor",
+  },
   description:
-    "Realtime multi-source news monitor for the Lebanon-Israel conflict",
+    "Realtime multi-source news monitor aggregating 47+ RSS feeds covering the Lebanon-Israel conflict, humanitarian updates, and Middle East breaking news.",
+  keywords: [
+    "Lebanon",
+    "Israel",
+    "conflict monitor",
+    "Middle East news",
+    "RSS aggregator",
+    "breaking news",
+    "humanitarian",
+    "ceasefire",
+    "UNIFIL",
+    "realtime feed",
+  ],
+  authors: [{ name: "LEB Monitor" }],
+  creator: "LEB Monitor",
   openGraph: {
     title: "LEB Monitor — Live Conflict Feed",
     description:
-      "Realtime multi-source news monitor for the Lebanon-Israel conflict",
+      "Realtime multi-source news monitor aggregating 47+ RSS feeds covering the Lebanon-Israel conflict.",
     type: "website",
+    locale: "en_US",
+    siteName: "LEB Monitor",
+  },
+  twitter: {
+    card: "summary",
+    title: "LEB Monitor — Live Conflict Feed",
+    description:
+      "Realtime multi-source news monitor for the Lebanon-Israel conflict.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "/",
   },
 };
 

@@ -24,7 +24,7 @@ interface SourceGroup {
 export function LiveFeed() {
   const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming } = useFeedStream();
 
-  const { prefs, toggleSource, moveSource, syncSources } = useFeedPrefs();
+  const { prefs, toggleSource, syncSources } = useFeedPrefs();
 
   // Filter state
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
@@ -219,7 +219,6 @@ export function LiveFeed() {
               sources={allSourceInfo}
               prefs={prefs}
               onToggle={toggleSource}
-              onMove={moveSource}
             />
           </div>
         </div>

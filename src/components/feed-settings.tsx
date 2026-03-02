@@ -9,7 +9,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
 import type { FeedPrefs } from "@/hooks/use-feed-prefs";
 import {
   CATEGORY_LABELS,
@@ -29,14 +28,11 @@ export function FeedSettings({
   sources,
   prefs,
   onToggle,
-  onMove,
 }: {
   sources: SourceInfo[];
   prefs: FeedPrefs;
   onToggle: (source: string) => void;
-  onMove: (source: string, direction: "up" | "down") => void;
 }) {
-  // Group by category, order within category by prefs
   const byCategory = CATEGORY_ORDER.map((cat) => {
     const catSources = sources
       .filter((s) => s.category === cat)
@@ -51,11 +47,14 @@ export function FeedSettings({
     return { category: cat, sources: catSources };
   }).filter((g) => g.sources.length > 0);
 
+  const hiddenCount = prefs.hidden.size;
+  const totalCount = sources.length;
+
   return (
     <Sheet>
       <SheetTrigger asChild>
         <button
-          className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-2 sm:py-1 rounded text-xs sm:text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground active:text-foreground hover:bg-accent/50 active:bg-accent/50 transition-colors cursor-pointer"
+          className="relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-2 sm:py-1 rounded text-xs sm:text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground active:text-foreground hover:bg-accent/50 active:bg-accent/50 transition-colors cursor-pointer"
           title="Manage feeds"
         >
           <svg
@@ -73,106 +72,97 @@ export function FeedSettings({
             <circle cx="12" cy="12" r="3" />
           </svg>
           Feeds
+          {hiddenCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-3.5 sm:h-3.5 rounded-full bg-primary text-primary-foreground text-[9px] sm:text-[8px] font-bold flex items-center justify-center">
+              {hiddenCount}
+            </span>
+          )}
         </button>
       </SheetTrigger>
 
       <SheetContent className="w-full sm:w-[320px] bg-background border-border/50 p-0">
         <SheetHeader className="px-4 py-3 border-b border-border/40">
           <SheetTitle className="text-sm font-semibold uppercase tracking-wide">
-            Manage Feeds
+            Manage Sources
           </SheetTitle>
           <SheetDescription className="text-xs sm:text-[10px] text-muted-foreground mt-0.5">
-            Toggle visibility and reorder columns
+            {hiddenCount > 0
+              ? `${totalCount - hiddenCount} of ${totalCount} sources active`
+              : `All ${totalCount} sources active`}
           </SheetDescription>
         </SheetHeader>
 
-        <div className="overflow-y-auto max-h-[calc(100vh-80px)] overscroll-contain pb-[env(safe-area-inset-bottom)]">
-          {byCategory.map(({ category, sources: catSources }) => (
-            <div key={category}>
-              {/* Category header */}
-              <div
-                className="px-4 py-2.5 sm:py-2 border-b border-border/30 flex items-center gap-2"
-                style={{ backgroundColor: `${CATEGORY_COLORS[category]}08` }}
-              >
+        <div className="overflow-y-auto flex-1 overscroll-contain pb-[env(safe-area-inset-bottom)]">
+          {byCategory.map(({ category, sources: catSources }) => {
+            const catHidden = catSources.filter((s) =>
+              prefs.hidden.has(s.name)
+            ).length;
+
+            return (
+              <div key={category}>
+                {/* Category header */}
                 <div
-                  className="w-1 h-3 rounded-full"
-                  style={{ backgroundColor: CATEGORY_COLORS[category] }}
-                />
-                <span
-                  className="text-[11px] sm:text-[10px] font-bold uppercase tracking-widest"
-                  style={{ color: CATEGORY_COLORS[category] }}
+                  className="px-4 py-2.5 sm:py-2 border-b border-border/30 flex items-center gap-2 sticky top-0 z-10 backdrop-blur-sm"
+                  style={{ backgroundColor: `${CATEGORY_COLORS[category]}08` }}
                 >
-                  {CATEGORY_LABELS[category]}
-                </span>
-                <span className="text-[10px] sm:text-[9px] text-muted-foreground/50 ml-auto">
-                  {catSources.length}
-                </span>
-              </div>
-
-              {/* Sources in category */}
-              {catSources.map((source, i) => {
-                const isHidden = prefs.hidden.has(source.name);
-                const isFirst = i === 0;
-                const isLast = i === catSources.length - 1;
-
-                return (
                   <div
-                    key={source.name}
-                    className={`flex items-center gap-3 px-4 py-3 sm:py-2.5 border-b border-border/20 transition-opacity ${
-                      isHidden ? "opacity-40" : ""
-                    }`}
+                    className="w-1 h-3 rounded-full"
+                    style={{ backgroundColor: CATEGORY_COLORS[category] }}
+                  />
+                  <span
+                    className="text-[11px] sm:text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: CATEGORY_COLORS[category] }}
                   >
-                    <div
-                      className="w-2.5 h-2.5 sm:w-2 sm:h-2 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: source.color || "oklch(0.50 0 0)",
-                      }}
-                    />
+                    {CATEGORY_LABELS[category]}
+                  </span>
+                  <span className="text-[10px] sm:text-[9px] text-muted-foreground/50 ml-auto tabular-nums">
+                    {catHidden > 0
+                      ? `${catSources.length - catHidden}/${catSources.length}`
+                      : catSources.length}
+                  </span>
+                </div>
 
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm sm:text-xs font-medium truncate block">
-                        {source.name}
-                      </span>
-                      <span className="text-xs sm:text-[10px] text-muted-foreground">
-                        {source.count} article{source.count !== 1 ? "s" : ""}
-                      </span>
-                    </div>
+                {/* Sources in category */}
+                {catSources.map((source) => {
+                  const isHidden = prefs.hidden.has(source.name);
 
-                    <div className="flex flex-col gap-0.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 sm:h-5 sm:w-5 text-muted-foreground hover:text-foreground cursor-pointer"
-                        disabled={isFirst}
-                        onClick={() => onMove(source.name, "up")}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="sm:w-2.5 sm:h-2.5">
-                          <path d="m18 15-6-6-6 6" />
-                        </svg>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 sm:h-5 sm:w-5 text-muted-foreground hover:text-foreground cursor-pointer"
-                        disabled={isLast}
-                        onClick={() => onMove(source.name, "down")}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="sm:w-2.5 sm:h-2.5">
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                      </Button>
-                    </div>
+                  return (
+                    <button
+                      type="button"
+                      key={source.name}
+                      onClick={() => onToggle(source.name)}
+                      className={`w-full flex items-center gap-3 px-4 py-3.5 sm:py-2.5 border-b border-border/20 transition-all cursor-pointer active:bg-accent/30 ${
+                        isHidden ? "opacity-40" : ""
+                      }`}
+                    >
+                      <div
+                        className="w-2.5 h-2.5 sm:w-2 sm:h-2 rounded-full shrink-0 transition-opacity"
+                        style={{
+                          backgroundColor: source.color || "oklch(0.50 0 0)",
+                        }}
+                      />
 
-                    <Switch
-                      checked={!isHidden}
-                      onCheckedChange={() => onToggle(source.name)}
-                      className="scale-90 sm:scale-75"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                      <div className="flex-1 min-w-0 text-left">
+                        <span className="text-sm sm:text-xs font-medium truncate block">
+                          {source.name}
+                        </span>
+                        <span className="text-xs sm:text-[10px] text-muted-foreground tabular-nums">
+                          {source.count} article{source.count !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+
+                      <Switch
+                        checked={!isHidden}
+                        onCheckedChange={() => onToggle(source.name)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="scale-100 sm:scale-90"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </SheetContent>
     </Sheet>

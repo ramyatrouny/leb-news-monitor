@@ -1,0 +1,81 @@
+name: Bug Report
+description: Something isn't working correctly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill out the sections below so we can reproduce and fix the issue.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: "e.g., The BBC ME feed always shows 0 articles and appears in the error bar."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: What should have happened instead?
+      placeholder: "e.g., BBC ME articles should load and display in the feed."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps to trigger the bug.
+      placeholder: |
+        1. Open http://localhost:3000
+        2. Wait for feeds to finish loading
+        3. See "1 feed(s) down" in the amber bar
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: What area is affected?
+      options:
+        - Feed loading / streaming
+        - UI / layout / styling
+        - Filtering / categories
+        - Settings panel
+        - Feed card display
+        - RTL / Arabic text
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: "e.g., Chrome 124 on macOS 15, Firefox 130 on Windows 11"
+    validations:
+      required: true
+
+  - type: textarea
+    id: console-errors
+    attributes:
+      label: Console errors (if any)
+      description: Open browser DevTools (F12 → Console) and paste any errors here.
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag and drop screenshots here if the issue is visual.
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that might help (e.g., specific feed source, network conditions).

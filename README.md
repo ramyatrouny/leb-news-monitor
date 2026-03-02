@@ -8,6 +8,11 @@ Real-time multi-source news aggregator for the Lebanon–Israel conflict. Stream
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+<!-- Replace with an actual screenshot of the app running -->
+<!-- ![LEB Monitor Screenshot](docs/screenshot.png) -->
+
+> **Live demo:** _Coming soon_ — or run locally in under a minute (see [Getting Started](#getting-started)).
+
 ---
 
 ## Features
@@ -302,70 +307,98 @@ The app binds to port 3000 by default. Use a reverse proxy (nginx, Caddy) for HT
 
 ## Contributing
 
-Contributions are welcome. Whether it's adding new feed sources, fixing bugs, improving the UI, or enhancing performance — all PRs are appreciated.
+Contributions are welcome — from adding a single feed source to building new features.
 
-### How to Contribute
+| I want to... | How |
+|---|---|
+| **Report a bug** | [Open a bug report](../../issues/new?template=bug_report.yml) |
+| **Request a feature** | [Open a feature request](../../issues/new?template=feature_request.yml) |
+| **Suggest a feed source** | [Open a feed source request](../../issues/new?template=feed_source.yml) |
+| **Submit code** | Read the [Contributing Guide](CONTRIBUTING.md) and open a PR |
 
-1. **Fork** the repository
-2. **Create a branch** for your feature or fix:
-   ```bash
-   git checkout -b feat/your-feature-name
-   ```
-3. **Make your changes** and ensure the code lints cleanly:
-   ```bash
-   npm run lint
-   ```
-4. **Build** to verify nothing is broken:
-   ```bash
-   npm run build
-   ```
-5. **Commit** with a descriptive message:
-   ```bash
-   git commit -m "feat: add Reuters RSS feed source"
-   ```
-6. **Push** to your fork and **open a Pull Request** against `main`
+### Quick Start for Contributors
 
-### PR Guidelines
-
-- **One feature/fix per PR** — keep changes focused and reviewable
-- **Describe what and why** — explain the motivation in the PR description
-- **Test locally** — run `npm run dev` and verify your changes work
-- **Follow existing patterns** — match the coding style already in the codebase
-- **Keep it small** — smaller PRs are easier to review and merge faster
-
-### Ideas for Contributions
-
-| Area | Examples |
-|------|---------|
-| New feed sources | Add RSS feeds from credible news outlets |
-| UI improvements | Better mobile layout, accessibility, animations |
-| Performance | Reduce bundle size, optimize streaming |
-| i18n | Language detection improvements, UI translations |
-| Features | Search, bookmarks, push notifications, sharing |
-| Bug fixes | Edge cases, error handling, XML parsing |
-| Documentation | Improve README, add inline comments |
-
-### Code Style
-
-- TypeScript strict mode is enabled
-- Functional components with hooks
-- Named exports preferred
-- Tailwind utility classes for all styling
-- Keep components small and focused
-- Follow the existing file structure under `src/`
-
-### Commit Convention
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
+```bash
+git clone https://github.com/<your-username>/leb-monitor.git
+cd leb-monitor
+npm install
+npm run dev         # http://localhost:3000
+# make changes...
+npm run lint        # must pass
+npm run build       # must succeed
+git checkout -b feat/my-change
+git commit -m "feat: describe your change"
+git push origin feat/my-change
+# open a PR on GitHub
 ```
-feat: add new feature
-fix: resolve a bug
-docs: update documentation
-style: formatting, no logic change
-refactor: restructure without behavior change
-chore: tooling, dependencies
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide — PR templates, code style, architecture walkthrough, and more.
+
+---
+
+## FAQ / Troubleshooting
+
+<details>
+<summary><strong>Some feeds show as "down" — is that normal?</strong></summary>
+
+Yes. RSS feeds are third-party services. Some sources go down temporarily, block certain IPs, or rate-limit requests. The app handles this gracefully — failed feeds show a count in the amber bar, but all other sources continue working.
+</details>
+
+<details>
+<summary><strong>I see 0 articles on first load</strong></summary>
+
+The API fetches 47 feeds in parallel, which takes a few seconds. You should see a spinner and a "Streaming" indicator in the top bar. If nothing loads after 15 seconds:
+- Check the browser console (`F12` → Console) for errors
+- Make sure the dev server is running (`npm run dev`)
+- Some corporate/school networks block RSS feeds — try from a different network
+</details>
+
+<details>
+<summary><strong>Articles appear in the wrong language</strong></summary>
+
+The app aggregates feeds in both Arabic and English. Arabic text is automatically detected and rendered right-to-left. If text direction looks wrong, it may be a feed returning content in an unexpected encoding — open an issue with the source name.
+</details>
+
+<details>
+<summary><strong>How do I reset my feed preferences?</strong></summary>
+
+Open browser DevTools (`F12` → Console) and run:
+```javascript
+localStorage.removeItem("lebmon-feed-prefs");
+location.reload();
 ```
+</details>
+
+<details>
+<summary><strong>Can I deploy this publicly?</strong></summary>
+
+Yes. The app has no API keys, no database, and no authentication. It fetches public RSS feeds server-side and streams them to the browser. Deploy to Vercel, a VPS, or any Node.js host. See [Deployment](#deployment).
+</details>
+
+<details>
+<summary><strong>Why NDJSON instead of Server-Sent Events or WebSockets?</strong></summary>
+
+NDJSON over a simple `fetch()` is the lightest approach — no special client libraries, no connection management, and works with standard HTTP caching/proxies. Each line is a self-contained JSON object, making it easy to parse progressively.
+</details>
+
+<details>
+<summary><strong>A feed I added doesn't show any articles</strong></summary>
+
+Common causes:
+1. The URL returns HTML, not XML — verify with `curl -s "URL" | head -20`
+2. The feed uses a non-standard format the parser can't handle
+3. The source blocks server-side requests (check for 403/401 errors in the terminal)
+4. The feed returns items with no `<title>` or `<link>` — our parser needs at least a title
+</details>
+
+<details>
+<summary><strong>How do I add a new feed category?</strong></summary>
+
+1. Add the category to the `FeedCategory` type in `src/config/feeds.ts`
+2. Add a label in `CATEGORY_LABELS` and a color in `CATEGORY_COLORS`
+3. Add it to the `CATEGORY_ORDER` array
+4. Assign feeds to it — the UI picks it up automatically
+</details>
 
 ---
 

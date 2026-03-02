@@ -10,9 +10,9 @@ function isRtl(text: string): boolean {
 }
 
 function timeAgo(dateStr: string): string {
-  const now = Date.now();
   const then = new Date(dateStr).getTime();
-  const diffSec = Math.floor((now - then) / 1000);
+  if (!dateStr || isNaN(then)) return "—";
+  const diffSec = Math.floor((Date.now() - then) / 1000);
 
   if (diffSec < 60) return "now";
   if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m`;

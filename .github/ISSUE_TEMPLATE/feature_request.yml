@@ -1,0 +1,54 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make LEB Monitor better? We'd love to hear it.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like to see?
+      description: Describe the feature or improvement clearly.
+      placeholder: "e.g., Add a search bar to filter articles by keyword across all feeds."
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why is this useful?
+      description: What problem does it solve? Who benefits from it?
+      placeholder: "e.g., When monitoring a specific topic like 'ceasefire', I have to manually scan hundreds of articles. A search bar would let me find relevant articles instantly."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: What area does this relate to?
+      options:
+        - New feed source
+        - UI / design
+        - Filtering / search
+        - Performance
+        - Accessibility
+        - Mobile experience
+        - Deployment / infrastructure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: how
+    attributes:
+      label: Implementation ideas (optional)
+      description: If you have thoughts on how this could be built, share them here. Not required.
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Mockups or references (optional)
+      description: Drag and drop any mockups, sketches, or links to similar features in other apps.

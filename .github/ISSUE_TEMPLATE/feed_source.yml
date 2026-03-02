@@ -1,0 +1,70 @@
+name: New Feed Source
+description: Suggest a new RSS feed source to add
+labels: ["feed-source"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest a new RSS feed to add to LEB Monitor. We aggregate feeds from credible news organizations, wire services, and humanitarian agencies.
+
+  - type: input
+    id: source-name
+    attributes:
+      label: Source name
+      description: The news organization or agency name.
+      placeholder: "e.g., Reuters Middle East"
+    validations:
+      required: true
+
+  - type: input
+    id: rss-url
+    attributes:
+      label: RSS feed URL
+      description: The direct URL to the RSS or Atom feed.
+      placeholder: "https://example.com/rss"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Suggested category
+      options:
+        - "War Focused — conflict, military, humanitarian"
+        - "Breaking News — fast-moving, time-sensitive"
+        - "General / Analysis — broader coverage and opinion"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Primary language
+      options:
+        - English
+        - Arabic
+        - French
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why should we add this source?
+      description: What perspective or coverage does it bring that existing sources don't?
+      placeholder: "e.g., This is the only major wire service covering the region that we don't already include."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: verified
+    attributes:
+      label: Verification
+      options:
+        - label: I confirmed the RSS feed URL loads valid XML
+          required: true
+        - label: The source is a legitimate news organization or agency
+          required: true
+        - label: The feed is publicly accessible (no login required)
+          required: true

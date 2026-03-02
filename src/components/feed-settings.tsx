@@ -3,6 +3,7 @@
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -13,6 +14,7 @@ import type { FeedPrefs } from "@/hooks/use-feed-prefs";
 import {
   CATEGORY_LABELS,
   CATEGORY_COLORS,
+  CATEGORY_ORDER,
   type FeedCategory,
 } from "@/config/feeds";
 
@@ -22,8 +24,6 @@ interface SourceInfo {
   count: number;
   category: FeedCategory;
 }
-
-const CATEGORY_ORDER: FeedCategory[] = ["war", "breaking", "general"];
 
 export function FeedSettings({
   sources,
@@ -80,9 +80,9 @@ export function FeedSettings({
           <SheetTitle className="text-sm font-semibold uppercase tracking-wide">
             Manage Feeds
           </SheetTitle>
-          <p className="text-[10px] text-muted-foreground mt-0.5">
+          <SheetDescription className="text-[10px] text-muted-foreground mt-0.5">
             Toggle visibility and reorder columns
-          </p>
+          </SheetDescription>
         </SheetHeader>
 
         <div className="overflow-y-auto max-h-[calc(100vh-80px)]">

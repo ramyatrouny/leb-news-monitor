@@ -20,7 +20,7 @@ interface FeedState {
  * Streams feeds from /api/feeds via NDJSON.
  * Items appear as each source resolves — no waiting for all 47.
  * On refresh, merges new items into existing list without disrupting the UI.
- * Re-fetches every 30s.
+ * Re-fetches every 30s after the previous fetch completes.
  */
 export function useFeedStream() {
   const [state, setState] = useState<FeedState>({
@@ -34,7 +34,8 @@ export function useFeedStream() {
   });
 
   const abortRef = useRef<AbortController | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const newIdsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchStream = useCallback(async (isInitial: boolean) => {
     abortRef.current?.abort();
@@ -71,17 +72,11 @@ export function useFeedStream() {
             const msg = JSON.parse(line);
 
             if (msg.type === "batch") {
+              const incoming = msg.items as FeedItem[];
+
               setState((prev) => {
-                const { merged, addedIds } = mergeItems(prev.items, msg.items as FeedItem[]);
+                const { merged, addedIds } = mergeItems(prev.items, incoming);
                 if (addedIds.size === 0 && merged === prev.items) return { ...prev, isLoading: false };
-
-                // Clear newIds after animation plays (300ms matches card-in duration)
-                if (addedIds.size > 0) {
-                  setTimeout(() => {
-                    setState((s) => (s.newIds.size > 0 ? { ...s, newIds: new Set() } : s));
-                  }, 600);
-                }
-
                 return {
                   ...prev,
                   items: merged,
@@ -89,6 +84,12 @@ export function useFeedStream() {
                   isLoading: false,
                 };
               });
+
+              // Clear newIds after animation plays — scheduled outside setState
+              if (newIdsTimerRef.current) clearTimeout(newIdsTimerRef.current);
+              newIdsTimerRef.current = setTimeout(() => {
+                setState((s) => (s.newIds.size > 0 ? { ...s, newIds: new Set() } : s));
+              }, 600);
             } else if (msg.type === "error") {
               batchErrors.push(`${msg.source}: ${msg.message}`);
             } else if (msg.type === "done") {
@@ -118,15 +119,20 @@ export function useFeedStream() {
   }, []);
 
   useEffect(() => {
-    fetchStream(true);
+    // Recursive setTimeout: only schedule next poll after current one completes
+    const schedule = () => {
+      pollTimerRef.current = setTimeout(async () => {
+        await fetchStream(false);
+        schedule();
+      }, POLL_INTERVAL);
+    };
 
-    timerRef.current = setInterval(() => {
-      fetchStream(false);
-    }, POLL_INTERVAL);
+    fetchStream(true).then(schedule);
 
     return () => {
       abortRef.current?.abort();
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+      if (newIdsTimerRef.current) clearTimeout(newIdsTimerRef.current);
     };
   }, [fetchStream]);
 
@@ -136,6 +142,7 @@ export function useFeedStream() {
 /**
  * Merge new items into existing list.
  * Returns the merged array + the set of newly added item IDs.
+ * Uses item.id as the dedup key (already unique per source + link/guid/title).
  */
 function mergeItems(
   existing: FeedItem[],
@@ -143,15 +150,14 @@ function mergeItems(
 ): { merged: FeedItem[]; addedIds: Set<string> } {
   const seen = new Set<string>();
   for (const item of existing) {
-    seen.add(`${item.source}::${item.link}`);
+    seen.add(item.id);
   }
 
   const addedIds = new Set<string>();
   const newItems: FeedItem[] = [];
   for (const item of incoming) {
-    const key = `${item.source}::${item.link}`;
-    if (!seen.has(key)) {
-      seen.add(key);
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
       newItems.push(item);
       addedIds.add(item.id);
     }

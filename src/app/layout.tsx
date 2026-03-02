@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Poppins, Noto_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 
@@ -14,10 +14,22 @@ const notoArabic = Noto_Sans_Arabic({
   weight: ["300", "400", "500", "600", "700"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0a0a12",
+};
+
 export const metadata: Metadata = {
   title: "LEB Monitor — Live Conflict Feed",
   description:
     "Realtime multi-source news monitor for the Lebanon-Israel conflict",
+  openGraph: {
+    title: "LEB Monitor — Live Conflict Feed",
+    description:
+      "Realtime multi-source news monitor for the Lebanon-Israel conflict",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

@@ -504,6 +504,48 @@ Common causes:
 
 <br />
 
+## Roadmap
+
+Planned features and improvements — contributions welcome on any of these:
+
+### Core Features
+- [ ] **Full-text search** — Filter articles by keyword across all sources in real time
+- [ ] **Bookmarks / saved articles** — Save important articles locally for later reading
+- [ ] **Notification system** — Browser push notifications for breaking news from selected sources
+- [ ] **Timeline view** — Chronological timeline visualization of events as they unfold
+- [ ] **Article clustering** — Group related articles from different sources covering the same event
+
+### Sources & Data
+- [ ] **Telegram channel integration** — Ingest updates from key Telegram channels alongside RSS
+- [ ] **Twitter/X feed support** — Pull posts from conflict reporters and official accounts
+- [ ] **Source credibility indicators** — Display trust/bias ratings from media bias databases
+- [ ] **Historical archive** — Persist articles to a database for historical search and analysis
+- [ ] **Feed health dashboard** — Admin view showing uptime, latency, and error rates per source
+
+### UI / UX
+- [ ] **Light mode toggle** — User-switchable light/dark theme (currently dark-only)
+- [ ] **Map view** — Plot geotagged articles on an interactive map of the region
+- [ ] **Multi-column layout customization** — Let users choose grid density (compact / comfortable / spacious)
+- [ ] **Reading mode** — Inline article preview without leaving the app
+- [ ] **Keyboard shortcuts** — Navigate feeds, switch categories, and open articles via keyboard
+
+### Platform & Performance
+- [ ] **Offline support (PWA)** — Cache recent articles for offline reading via service worker
+- [ ] **Server-side caching** — Redis or in-memory cache layer to reduce RSS fetch frequency
+- [ ] **i18n framework** — Full UI translation support (Arabic, French, English)
+- [ ] **RSS feed export** — Generate a unified RSS/Atom feed from LEBMON's aggregated output
+- [ ] **Mobile app (React Native)** — Native mobile experience with push notifications
+
+### Analytics & Intelligence
+- [ ] **Sentiment analysis** — NLP-based sentiment tagging per article (escalation / de-escalation)
+- [ ] **Trend detection** — Surface topics gaining momentum across multiple sources
+- [ ] **Daily digest email** — Automated summary of top stories delivered to subscribers
+- [ ] **Source comparison** — Side-by-side view showing how different outlets cover the same story
+
+> Have an idea not listed here? [Open a feature request](../../issues/new?template=feature_request.yml).
+
+<br />
+
 ## License
 
 This project is open source under the [MIT License](LICENSE).

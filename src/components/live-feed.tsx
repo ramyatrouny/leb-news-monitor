@@ -10,6 +10,7 @@ import {
 } from "@/config/feeds";
 import { FeedCard, FeedCardSkeleton } from "./feed-card";
 import { FeedSettings } from "./feed-settings";
+import { ThemeToggle } from "./theme-toggle";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 
@@ -215,6 +216,7 @@ export function LiveFeed() {
               {totalItems}
             </span>
 
+            <ThemeToggle />
             <FeedSettings
               sources={allSourceInfo}
               prefs={prefs}

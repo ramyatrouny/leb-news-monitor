@@ -38,14 +38,14 @@ export const FeedCard = memo(function FeedCard({
       rel="noopener noreferrer"
       className={`block group ${isNew ? "card-enter" : ""}`}
     >
-      <article className="relative h-full rounded-lg border border-border/40 bg-card/50 hover:bg-accent/40 hover:border-border/60 transition-colors duration-150 overflow-hidden">
+      <article className="relative h-full rounded-lg border border-border/40 bg-card/50 active:bg-accent/50 hover:bg-accent/40 hover:border-border/60 transition-colors duration-150 overflow-hidden">
         {/* Accent bar (left edge) */}
         <div
           className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
           style={{ backgroundColor: item.sourceColor || "oklch(0.65 0.22 25)" }}
         />
 
-        <div className="px-3 py-2.5">
+        <div className="px-3.5 py-3 sm:px-3 sm:py-2.5">
           {/* Source + time row */}
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <div className="flex items-center gap-1.5 min-w-0">
@@ -54,22 +54,22 @@ export const FeedCard = memo(function FeedCard({
                 style={{ backgroundColor: item.sourceColor || "oklch(0.50 0 0)" }}
               />
               <span
-                className="text-[10px] font-semibold uppercase tracking-wider truncate"
+                className="text-[11px] sm:text-[10px] font-semibold uppercase tracking-wider truncate"
                 style={{ color: item.sourceColor || "oklch(0.65 0.22 25)" }}
               >
                 {item.source}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground/60 tabular-nums shrink-0">
+            <span className="text-[11px] sm:text-[10px] text-muted-foreground/60 tabular-nums shrink-0">
               {timeAgo(item.pubDate)}
             </span>
           </div>
 
           {/* Content: text + optional thumbnail */}
-          <div className="flex gap-2.5">
+          <div className="flex gap-3 sm:gap-2.5">
             <div className="flex-1 min-w-0">
               <h3
-                className="text-[13px] font-medium leading-[1.4] text-foreground/90 group-hover:text-foreground transition-colors line-clamp-2"
+                className="text-sm sm:text-[13px] font-medium leading-[1.4] text-foreground/90 group-hover:text-foreground transition-colors line-clamp-2"
                 dir={rtl ? "rtl" : "ltr"}
                 lang={rtl ? "ar" : undefined}
               >
@@ -78,7 +78,7 @@ export const FeedCard = memo(function FeedCard({
 
               {item.snippet && (
                 <p
-                  className="mt-1 text-[11px] leading-normal text-muted-foreground line-clamp-2"
+                  className="mt-1 text-xs sm:text-[11px] leading-normal text-muted-foreground line-clamp-2"
                   dir={rtl ? "rtl" : "ltr"}
                   lang={rtl ? "ar" : undefined}
                 >
@@ -88,7 +88,7 @@ export const FeedCard = memo(function FeedCard({
             </div>
 
             {showImage && (
-              <div className="shrink-0 w-12 h-12 rounded overflow-hidden bg-muted/30 mt-0.5">
+              <div className="shrink-0 w-14 h-14 sm:w-12 sm:h-12 rounded overflow-hidden bg-muted/30 mt-0.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.image}

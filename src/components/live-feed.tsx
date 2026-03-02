@@ -160,32 +160,36 @@ export function LiveFeed() {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
       {/* ── Top Bar ── */}
-      <header className="shrink-0 border-b border-border/50 bg-secondary/20 backdrop-blur-sm">
-        <div className="px-4 py-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="shrink-0 border-b border-border/50 bg-secondary/20 backdrop-blur-sm pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <div className="px-3 py-2 sm:px-4 sm:py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2">
               <div className="live-dot w-2 h-2 rounded-full bg-primary" />
               <h1 className="text-sm font-bold tracking-tight uppercase">
                 LEB<span className="text-primary">MON</span>
               </h1>
             </div>
-            <div className="h-3 w-px bg-border/50" />
-            <span className="text-[10px] text-muted-foreground tracking-wide">
-              Conflict Monitor
-            </span>
+            {/* Subtitle: hidden on mobile to save space */}
+            <div className="hidden sm:flex items-center gap-3">
+              <div className="h-3 w-px bg-border/50" />
+              <span className="text-[10px] text-muted-foreground tracking-wide">
+                Conflict Monitor
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {isStreaming && (
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 border border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
-                <span className="text-[10px] text-amber-500/80 uppercase tracking-wider">
+                <span className="hidden sm:inline text-[10px] text-amber-500/80 uppercase tracking-wider">
                   Streaming
                 </span>
               </div>
             )}
 
-            <div className="flex items-center gap-3 text-[10px] text-muted-foreground tabular-nums">
+            {/* Stats: hidden on mobile, visible on sm+ */}
+            <div className="hidden sm:flex items-center gap-3 text-[10px] text-muted-foreground tabular-nums">
               <span>
                 <strong className="text-foreground/70">{visibleSourceCount}</strong>
                 <span className="text-muted-foreground/50">/{sourceCount}</span>{" "}
@@ -206,6 +210,11 @@ export function LiveFeed() {
               )}
             </div>
 
+            {/* Compact article count on mobile only */}
+            <span className="sm:hidden text-xs text-muted-foreground tabular-nums">
+              {totalItems}
+            </span>
+
             <FeedSettings
               sources={allSourceInfo}
               prefs={prefs}
@@ -214,26 +223,25 @@ export function LiveFeed() {
             />
           </div>
         </div>
-
       </header>
 
       {/* ── Filter Bar ── */}
-      <div className="shrink-0 border-b border-border/40 bg-secondary/10">
+      <div className="shrink-0 border-b border-border/40 bg-secondary/10 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
         {/* Category tabs */}
-        <div className="px-4 py-2 flex items-center gap-1" role="tablist" aria-label="Filter by category">
+        <div className="px-3 sm:px-4 py-1.5 sm:py-2 flex items-center gap-1 overflow-x-auto" role="tablist" aria-label="Filter by category">
           <button
             type="button"
             role="tab"
             aria-selected={activeCategory === "all"}
             onClick={() => handleCategoryChange("all")}
-            className={`px-3 py-1 rounded-full text-[11px] font-medium tracking-wide transition-colors ${
+            className={`shrink-0 px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-[11px] font-medium tracking-wide transition-colors cursor-pointer ${
               activeCategory === "all"
                 ? "bg-foreground/10 text-foreground"
                 : "text-muted-foreground hover:text-foreground/70 hover:bg-foreground/5"
             }`}
           >
             All
-            <span className="ml-1.5 text-[9px] opacity-60 tabular-nums">
+            <span className="ml-1.5 text-[10px] sm:text-[9px] opacity-60 tabular-nums">
               {categoryCounts.all}
             </span>
           </button>
@@ -245,7 +253,7 @@ export function LiveFeed() {
               aria-selected={activeCategory === cat}
               key={cat}
               onClick={() => handleCategoryChange(cat)}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium tracking-wide transition-colors flex items-center gap-1.5 ${
+              className={`shrink-0 px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-[11px] font-medium tracking-wide transition-colors flex items-center gap-1.5 cursor-pointer ${
                 activeCategory === cat
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground/70 hover:bg-foreground/5"
@@ -261,26 +269,27 @@ export function LiveFeed() {
                 style={{ backgroundColor: CATEGORY_COLORS[cat] }}
               />
               {CATEGORY_LABELS[cat]}
-              <span className="text-[9px] opacity-60 tabular-nums">
+              <span className="text-[10px] sm:text-[9px] opacity-60 tabular-nums">
                 {categoryCounts[cat]}
               </span>
             </button>
           ))}
 
-          <div className="ml-auto text-[10px] text-muted-foreground/50 tabular-nums">
+          {/* Result count: desktop only */}
+          <div className="ml-auto hidden sm:block text-[10px] text-muted-foreground/50 tabular-nums shrink-0">
             {filteredItems.length} results
           </div>
         </div>
 
         {/* Source chips */}
-        <div className="px-4 pb-2 flex items-center gap-1.5 overflow-x-auto">
+        <div className="px-3 sm:px-4 pb-1.5 sm:pb-2 flex items-center gap-1.5 sm:gap-1.5 overflow-x-auto">
           {activeSource && (
             <button
               type="button"
               onClick={() => handleSourceChange(null)}
-              className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors flex items-center gap-1"
+              className="shrink-0 px-2.5 py-1 sm:px-2 sm:py-0.5 rounded-full text-[11px] sm:text-[10px] font-medium bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
               Clear
@@ -295,7 +304,7 @@ export function LiveFeed() {
                 aria-pressed={activeSource === source.name}
                 key={source.name}
                 onClick={() => handleSourceChange(activeSource === source.name ? null : source.name)}
-                className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] transition-colors flex items-center gap-1 border ${
+                className={`shrink-0 px-2.5 py-1 sm:px-2 sm:py-0.5 rounded-full text-[11px] sm:text-[10px] transition-colors flex items-center gap-1 border cursor-pointer ${
                   activeSource === source.name
                     ? "bg-foreground/10 text-foreground border-foreground/20"
                     : "text-muted-foreground/70 hover:text-muted-foreground border-border/40 hover:border-border/60"
@@ -306,7 +315,7 @@ export function LiveFeed() {
                   style={{ backgroundColor: source.color || "oklch(0.50 0 0)" }}
                 />
                 {source.name}
-                <span className="text-[9px] opacity-50 tabular-nums">
+                <span className="text-[10px] sm:text-[9px] opacity-50 tabular-nums">
                   {source.count}
                 </span>
               </button>
@@ -315,10 +324,10 @@ export function LiveFeed() {
       </div>
 
       {/* ── Card Grid ── */}
-      <main ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="p-4">
+      <main ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="p-2.5 sm:p-4">
           {isLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
               {Array.from({ length: 12 }).map((_, i) => (
                 <FeedCardSkeleton key={i} />
               ))}
@@ -326,7 +335,7 @@ export function LiveFeed() {
           )}
 
           {!isLoading && visibleItems.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
               {visibleItems.map((item) => (
                 <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} />
               ))}
@@ -335,7 +344,7 @@ export function LiveFeed() {
 
           {hasMore && (
             <div ref={attachObserver} className="py-6">
-              <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground">
+              <div className="flex items-center justify-center gap-2 text-xs sm:text-[10px] text-muted-foreground">
                 <div className="w-3 h-3 border border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
                 Loading more...
               </div>
@@ -343,8 +352,8 @@ export function LiveFeed() {
           )}
 
           {!hasMore && visibleItems.length > 0 && (
-            <div className="py-6 text-center">
-              <span className="text-[10px] text-muted-foreground/40">
+            <div className="py-6 text-center pb-[env(safe-area-inset-bottom)]">
+              <span className="text-xs sm:text-[10px] text-muted-foreground/40">
                 End of feed — {filteredItems.length} articles
               </span>
             </div>
@@ -354,17 +363,17 @@ export function LiveFeed() {
             <div className="flex flex-col items-center justify-center gap-2 py-20">
               {grouped.size > 0 ? (
                 <>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm sm:text-xs text-muted-foreground">
                     No articles match current filters.
                   </p>
-                  <p className="text-[10px] text-muted-foreground/60">
+                  <p className="text-xs sm:text-[10px] text-muted-foreground/60">
                     Try a different category or clear the source filter.
                   </p>
                 </>
               ) : (
                 <>
                   <div className="w-8 h-8 border-2 border-muted-foreground/20 border-t-muted-foreground/50 rounded-full animate-spin" />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm sm:text-xs text-muted-foreground">
                     Waiting for feeds...
                   </p>
                 </>
@@ -374,8 +383,8 @@ export function LiveFeed() {
         </div>
       </main>
 
-      {/* ── Bottom status bar ── */}
-      <footer className="shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 flex items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">
+      {/* ── Bottom status bar — hidden on mobile to maximize content space ── */}
+      <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">
         <span>Auto-refresh 30s</span>
         <span>LEB Monitor v1.0</span>
       </footer>

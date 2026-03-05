@@ -2,6 +2,8 @@
 
 import { memo, useState, type ReactNode } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
+import type { TagInfo } from "@/lib/entity-extractor";
+import { ArticleTags } from "./tag-browser";
 
 const RTL_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 
@@ -43,11 +45,17 @@ export const FeedCard = memo(function FeedCard({
   isNew,
   highlightQuery,
   onSimilar,
+  itemTags,
+  tagIndex,
+  onTagClick,
 }: {
   item: FeedItem;
   isNew?: boolean;
   highlightQuery?: string;
   onSimilar?: (item: FeedItem) => void;
+  itemTags?: string[];
+  tagIndex?: Map<string, TagInfo>;
+  onTagClick?: (tag: string) => void;
 }) {
   const rtl = isRtl(item.title);
   const [imgError, setImgError] = useState(false);
@@ -121,6 +129,11 @@ export const FeedCard = memo(function FeedCard({
               </div>
             )}
           </div>
+
+          {/* Entity tags */}
+          {itemTags && itemTags.length > 0 && tagIndex && (
+            <ArticleTags tags={itemTags} tagIndex={tagIndex} onTagClick={onTagClick} />
+          )}
 
           {/* More like this */}
           {onSimilar && (

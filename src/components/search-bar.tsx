@@ -61,6 +61,8 @@ interface SearchBarProps {
   sourceNames: string[];
   /** Slot for the date picker rendered next to the Filters button */
   datePicker?: ReactNode;
+  /** Slot for the tag browser rendered next to the date picker */
+  tagBrowser?: ReactNode;
 }
 
 export function SearchBar({
@@ -75,6 +77,7 @@ export function SearchBar({
   onClearRecent,
   sourceNames,
   datePicker,
+  tagBrowser,
 }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -216,6 +219,9 @@ export function SearchBar({
 
         {/* Date picker (slot) */}
         {datePicker}
+
+        {/* Tag browser (slot) */}
+        {tagBrowser}
 
         {/* Reset all */}
         {hasActiveFilters && (

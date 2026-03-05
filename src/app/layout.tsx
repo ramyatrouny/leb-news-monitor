@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Poppins, Noto_Sans_Arabic } from "next/font/google";
+import { Poppins, Tajawal } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
@@ -11,10 +11,10 @@ const poppins = Poppins({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-const notoArabic = Noto_Sans_Arabic({
+const tajawal = Tajawal({
   variable: "--font-arabic",
   subsets: ["arabic"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "700"],
 });
 
 export const viewport: Viewport = {
@@ -172,7 +172,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${poppins.variable} ${notoArabic.variable} antialiased`}
+        className={`${poppins.variable} ${tajawal.variable} antialiased`}
       >
         {children}
         <Analytics />

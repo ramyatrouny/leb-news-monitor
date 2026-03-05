@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import {
   Sheet,
   SheetContent,
@@ -50,6 +51,8 @@ export function FeedSettings({
   const hiddenCount = prefs.hidden.size;
   const totalCount = sources.length;
 
+  const sheetId = useId();
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -80,7 +83,7 @@ export function FeedSettings({
         </button>
       </SheetTrigger>
 
-      <SheetContent className="w-full sm:w-[320px] bg-background border-border/50 p-0">
+      <SheetContent className="w-full sm:w-[320px] bg-background border-border/50 p-0" id={sheetId}>
         <SheetHeader className="px-4 py-3 border-b border-border/40">
           <SheetTitle className="text-sm font-semibold uppercase tracking-wide">
             Manage Sources

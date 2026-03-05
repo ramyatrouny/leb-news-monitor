@@ -11,6 +11,7 @@ import {
 import { FeedCard, FeedCardSkeleton } from "./feed-card";
 import { FeedSettings } from "./feed-settings";
 import { ThemeToggle } from "./theme-toggle";
+import { AnnouncementBanner } from "./announcement-banner";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 
@@ -225,6 +226,8 @@ export function LiveFeed() {
           </div>
         </div>
       </header>
+
+      <AnnouncementBanner />
 
       {/* ── Filter Bar ── */}
       <div className="shrink-0 border-b border-border/40 bg-secondary/10 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">

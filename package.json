@@ -1,7 +1,18 @@
 {
   "name": "leb-monitor",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "Real-time multi-source news monitor aggregating 47+ RSS feeds covering the Lebanon-Israel conflict, humanitarian updates, and Middle East breaking news.",
+  "author": "LEB Monitor",
+  "license": "MIT",
+  "homepage": "https://lebmonitor.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ramyatrouny/leb-news-monitor"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,6 +21,8 @@
   },
   "dependencies": {
     "@next/third-parties": "^16.1.6",
+    "@vercel/analytics": "^1.6.1",
+    "@vercel/speed-insights": "^1.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.576.0",

@@ -4,11 +4,21 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
+        userAgent: "Googlebot",
+        allow: "/",
+        disallow: ["/api/"],
+      },
+      {
+        userAgent: "Googlebot-Image",
+        allow: "/",
+      },
+      {
         userAgent: "*",
         allow: "/",
         disallow: ["/api/"],
       },
     ],
-    sitemap: "https://leb-news-monitor.vercel.app/sitemap.xml",
+    sitemap: "https://lebmonitor.com/sitemap.xml",
+    host: "https://lebmonitor.com",
   };
 }

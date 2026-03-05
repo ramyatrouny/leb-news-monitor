@@ -9,13 +9,13 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
-[![Deploy](https://img.shields.io/badge/Live_Demo-▶_Open-ef4444?style=flat-square)](https://leb-news-monitor.vercel.app/)
+[![Deploy](https://img.shields.io/badge/Live_Demo-▶_Open-ef4444?style=flat-square)](https://lebmonitor.com)
 
 <br />
 
 ![LEB Monitor Screenshot](docs/screenshot.png)
 
-**[Live Demo](https://leb-news-monitor.vercel.app/)** · **[Report Bug](../../issues/new?template=bug_report.yml)** · **[Request Feature](../../issues/new?template=feature_request.yml)** · **[Suggest Source](../../issues/new?template=feed_source.yml)**
+**[Live Demo](https://lebmonitor.com)** · **[Report Bug](../../issues/new?template=bug_report.yml)** · **[Request Feature](../../issues/new?template=feature_request.yml)** · **[Suggest Source](../../issues/new?template=feed_source.yml)**
 
 </div>
 
@@ -414,6 +414,7 @@ Contributions are welcome — from adding a single feed source to building new f
 | **Report a bug** | [Open a bug report](../../issues/new?template=bug_report.yml) |
 | **Request a feature** | [Open a feature request](../../issues/new?template=feature_request.yml) |
 | **Suggest a feed source** | [Open a feed source request](../../issues/new?template=feed_source.yml) |
+| **Find a feature to build** | Browse the [Feature Ideas catalog](docs/FEATURE_IDEAS.md) — 192 ideas across 16 categories |
 | **Submit code** | Read the [Contributing Guide](CONTRIBUTING.md) and open a PR |
 
 ```bash
@@ -542,6 +543,8 @@ Planned features and improvements — contributions welcome on any of these:
 - [ ] **Daily digest email** — Automated summary of top stories delivered to subscribers
 - [ ] **Source comparison** — Side-by-side view showing how different outlets cover the same story
 
+> Looking for more ideas? Check the full **[Feature Ideas catalog](docs/FEATURE_IDEAS.md)** with 192 features across 16 categories, priority matrices, and implementation phases.
+>
 > Have an idea not listed here? [Open a feature request](../../issues/new?template=feature_request.yml).
 
 <br />
@@ -564,6 +567,6 @@ Built with data from independent journalists, humanitarian organizations, and ne
 
 **LEBMON** — Conflict Monitor v1.0
 
-[Live Demo](https://leb-news-monitor.vercel.app/) · [Report Bug](../../issues/new?template=bug_report.yml) · [Contributing](CONTRIBUTING.md)
+[Live Demo](https://lebmonitor.com) · [Report Bug](../../issues/new?template=bug_report.yml) · [Contributing](CONTRIBUTING.md)
 
 </div>

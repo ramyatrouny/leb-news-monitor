@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
 import type { FeedLayout } from "@/hooks/use-layout";
 import { FeedCard, FeedCardSkeleton } from "./feed-card";
@@ -30,6 +30,12 @@ export function FeedContent({
   const prevObserverRef = useRef<IntersectionObserver | null>(null);
 
   const hasMore = visibleCount < filteredCount;
+
+  useEffect(() => {
+    return () => {
+      prevObserverRef.current?.disconnect();
+    };
+  }, []);
 
   const layoutClass = layout === "grid"
     ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3"

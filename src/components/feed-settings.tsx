@@ -127,10 +127,12 @@ export function FeedSettings({
                   const isHidden = prefs.hidden.has(source.name);
 
                   return (
-                    <button
-                      type="button"
+                    <div
+                      role="button"
+                      tabIndex={0}
                       key={source.name}
                       onClick={() => onToggle(source.name)}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(source.name); } }}
                       className={`w-full flex items-center gap-3 px-4 py-3.5 sm:py-2.5 border-b border-border/20 transition-all cursor-pointer active:bg-accent/30 ${
                         isHidden ? "opacity-40" : ""
                       }`}
@@ -157,7 +159,7 @@ export function FeedSettings({
                         onClick={(e) => e.stopPropagation()}
                         className="scale-100 sm:scale-90"
                       />
-                    </button>
+                    </div>
                   );
                 })}
               </div>

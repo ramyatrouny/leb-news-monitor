@@ -1,119 +1,163 @@
 <div align="center">
 
-# LEBMON
+<br />
 
-### Real-time conflict intelligence, from 47+ sources to your screen
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/LEB-MONITOR-ef4444?style=for-the-badge&labelColor=0a0a12&color=ef4444">
+  <img alt="LEB Monitor" src="https://img.shields.io/badge/LEB-MONITOR-ef4444?style=for-the-badge&labelColor=f5f5f8&color=ef4444">
+</picture>
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
-[![Deploy](https://img.shields.io/badge/Live_Demo-▶_Open-ef4444?style=flat-square)](https://lebmonitor.com)
+### Real-time conflict intelligence from 44+ sources — streamed to your browser in under 3 seconds
 
 <br />
 
-![LEB Monitor Screenshot](docs/screenshot.png)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev)
+[![TypeScript 5](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Tailwind CSS 4](https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)](LICENSE)
+[![Live](https://img.shields.io/badge/Live-lebmonitor.com-ef4444?style=flat-square&logo=vercel&logoColor=white)](https://lebmonitor.com)
 
-**[Live Demo](https://lebmonitor.com)** · **[Report Bug](../../issues/new?template=bug_report.yml)** · **[Request Feature](../../issues/new?template=feature_request.yml)** · **[Suggest Source](../../issues/new?template=feed_source.yml)**
+<br />
+
+<a href="https://lebmonitor.com">
+  <img src="docs/screenshot.png" alt="LEB Monitor — Live Feed" width="720" />
+</a>
+
+<br />
+<br />
+
+[**Live Demo**](https://lebmonitor.com) &nbsp;&middot;&nbsp; [Report Bug](../../issues/new?template=bug_report.yml) &nbsp;&middot;&nbsp; [Request Feature](../../issues/new?template=feature_request.yml) &nbsp;&middot;&nbsp; [Suggest Source](../../issues/new?template=feed_source.yml)
 
 </div>
 
 <br />
 
-## Overview
-
-LEB Monitor is a real-time multi-source news aggregator purpose-built for the Lebanon–Israel conflict. It streams articles from **47+ RSS feeds** spanning war coverage, breaking news, and regional analysis — in both **Arabic** and **English** — directly to a responsive, dark-mode interface.
-
-No API keys. No database. No authentication. Just public RSS feeds, parsed server-side and streamed progressively to your browser.
+---
 
 <br />
 
-## Highlights
+## Why LEB Monitor?
 
-🔴 **Real-time Streaming** — Feeds arrive via NDJSON as each source resolves; no waiting for all 47 to finish
+The Lebanon–Israel conflict generates hundreds of articles daily across dozens of outlets in multiple languages. Keeping up means juggling browser tabs, Telegram channels, and Twitter threads — or missing critical updates entirely.
 
-📡 **47+ RSS Sources** — LBC, Al Jazeera, BBC, UN, MSF, Amnesty, Bellingcat, Crisis Group, and many more
+**LEB Monitor solves this.** It aggregates **44 RSS feeds** from war correspondents, UN agencies, humanitarian orgs, and major news networks — in **Arabic and English** — into a single real-time stream. Articles arrive progressively via NDJSON as each source resolves. No waiting. No refreshing. No API keys.
 
-🌍 **Arabic + English** — Automatic RTL/LTR text direction detection with dual font support (Poppins + Noto Sans Arabic)
+<br />
 
-🔄 **Auto-refresh** — Polls every 30 seconds with smart client-side deduplication
+## What Makes It Different
 
-⚙️ **Source Management** — Toggle, reorder, and hide individual feeds via a settings panel; preferences persist in localStorage
+<table>
+<tr>
+<td width="50%">
 
-🎨 **Light & Dark Mode** — Switchable theme with OKLCh color system, system preference detection, and custom scrollbars
+### Progressive Streaming
+Feeds arrive via **NDJSON** as each source resolves — you see articles in under 3 seconds, not after all 44 sources finish. Built on native `ReadableStream`, not WebSockets or polling hacks.
 
-📱 **Fully Responsive** — 1 / 2 / 3 column card grid across mobile, tablet, and desktop
+### Dual-Language Intelligence
+Automatic **RTL/LTR detection** via Unicode range analysis. Arabic headlines render right-to-left with Tajawal; English content stays left-to-right with Poppins. Zero configuration.
 
-🛡️ **Error Resilient** — Individual feed failures never block others (`Promise.allSettled`); failed sources are reported transparently
+### Zero Infrastructure
+No database. No Redis. No API keys. No authentication. Just public RSS feeds parsed server-side and streamed to the browser. Deploy in 30 seconds.
+
+</td>
+<td width="50%">
+
+### Resilient by Design
+Each feed is fetched independently via `Promise.allSettled`. If Al Jazeera is down, BBC still streams. Failed sources are reported transparently — never silently dropped.
+
+### Smart Deduplication
+Client-side merge algorithm deduplicates by composite ID (`source + link/guid/title`). Auto-refresh every 30s merges new articles into the existing list with entrance animations. No jarring reloads.
+
+### Fully Customizable
+Toggle sources on/off, reorder feeds, switch between grid/list layouts, cycle through 4 font sizes, flip light/dark themes — all persisted in localStorage via `useSyncExternalStore`.
+
+</td>
+</tr>
+</table>
 
 <br />
 
 ## Quick Start
 
-**Prerequisites:** [Node.js](https://nodejs.org) 18+ and a package manager (npm, yarn, pnpm, or bun)
-
 ```bash
-# 1. Clone
 git clone https://github.com/ramyatrouny/leb-news-monitor.git
 cd leb-news-monitor
-
-# 2. Install
 npm install
-
-# 3. Run
 npm run dev
 ```
 
-Open **[localhost:3000](http://localhost:3000)** — the feed begins streaming immediately.
+Open **[localhost:3000](http://localhost:3000)** — articles start streaming immediately.
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Create production build |
-| `npm start` | Run production server |
-| `npm run lint` | Run ESLint checks |
+> **Requirements:** Node.js 18+ &nbsp;|&nbsp; No environment variables needed &nbsp;|&nbsp; No database setup
 
 <br />
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                          Browser                              │
-│                                                               │
-│  ┌──────────────┐    ┌──────────────┐    ┌────────────────┐  │
-│  │   LiveFeed    │    │   FeedCard    │    │  FeedSettings   │  │
-│  │  (container)  │    │  (article)   │    │    (panel)      │  │
-│  └──────┬───────┘    └──────────────┘    └────────────────┘  │
-│         │                                                     │
-│  ┌──────┴───────┐    ┌──────────────┐                        │
-│  │ useFeedStream │    │ useFeedPrefs │                        │
-│  │   (NDJSON)    │    │(localStorage)│                        │
-│  └──────┬───────┘    └──────────────┘                        │
-│         │                                                     │
-│         │  fetch() + ReadableStream                           │
-└─────────┼────────────────────────────────────────────────────┘
-          │
-┌─────────┴────────────────────────────────────────────────────┐
-│                    Next.js API Route                          │
-│                                                               │
-│  GET /api/feeds                                               │
-│  ├─ Fetch 47 RSS feeds in parallel (Promise.allSettled)       │
-│  ├─ Sanitize malformed XML + parse via rss-parser             │
-│  ├─ Extract images (media:content → thumbnail → enclosure)    │
-│  ├─ Stream batches as NDJSON (each source → one batch)        │
-│  └─ Report per-source errors + completion summary             │
-└──────────────────────────────────────────────────────────────┘
+                                    ┌─────────────────────────────────────────┐
+                                    │              Browser                     │
+                                    │                                          │
+ ┌─────────────┐                    │  LiveFeed (orchestrator)                 │
+ │  44 RSS     │   NDJSON stream    │  ├── FeedHeader     (logo, stats, tools)│
+ │  Sources    │ ◄─── fetch() ────► │  ├── FeedFilterBar  (categories, chips) │
+ │             │                    │  ├── FeedContent    (cards, scroll)      │
+ │  Al Jazeera │   ┌────────────┐   │  │   └── FeedCard   (article, RTL)      │
+ │  BBC        │   │ /api/feeds │   │  └── FeedSettings  (toggle, reorder)    │
+ │  UN OCHA    │   │            │   │                                          │
+ │  MSF        │──►│ Parse XML  │──►│  Hooks:                                 │
+ │  LBC        │   │ Sanitize   │   │  ├── useFeedStream  (NDJSON + merge)    │
+ │  Bellingcat │   │ Extract    │   │  ├── useFeedPrefs   (source prefs)      │
+ │  ...38 more │   │ Stream     │   │  ├── useLayout      (grid / list)       │
+ └─────────────┘   └────────────┘   │  ├── useFontSize    (4 presets)         │
+                                    │  └── useTheme       (light / dark)      │
+                                    └─────────────────────────────────────────┘
 ```
 
 ### Data Flow
 
-1. **Mount** — `<LiveFeed>` renders, `useFeedStream()` fires `GET /api/feeds`
-2. **Stream** — API fetches 47 feeds in parallel; each resolved feed is streamed as an NDJSON batch
-3. **Merge** — Client deduplicates by item ID, sorts by `pubDate` descending, marks new IDs for animation
-4. **Render** — Responsive card grid with category/source filtering and infinite scroll (IntersectionObserver)
-5. **Poll** — Every 30 seconds, the cycle repeats; new items merge in with entrance animations
+| Step | What Happens |
+|------|-------------|
+| **1. Mount** | `useFeedStream()` fires `GET /api/feeds` |
+| **2. Fetch** | API route fetches 44 feeds in parallel via `Promise.allSettled` |
+| **3. Stream** | Each resolved feed is sanitized, parsed, and streamed as an NDJSON batch |
+| **4. Merge** | Client deduplicates by ID, sorts by `pubDate`, marks new items for animation |
+| **5. Render** | Responsive card grid with category/source filtering + infinite scroll |
+| **6. Poll** | Every 30s the cycle repeats; new articles merge in with CSS transitions |
+
+<br />
+
+## Features
+
+### Core
+| Feature | Implementation |
+|---------|---------------|
+| Real-time streaming | NDJSON over `ReadableStream` — articles appear as each source resolves |
+| 44 RSS sources | War coverage, breaking news, analysis — Arabic + English |
+| Auto-refresh | 30s polling with client-side deduplication and merge |
+| Infinite scroll | `IntersectionObserver` with 30-item pages |
+| Category filtering | War Focused / Breaking News / General tabs with live counts |
+| Source filtering | Chip-based source selector with active state toggling |
+
+### User Preferences (all localStorage-persisted)
+| Preference | Control |
+|------------|---------|
+| Theme | Light / Dark with system preference detection |
+| Font size | Small / Medium / Large / XL — applied via CSS class scaling |
+| Layout | Grid (1-3 columns) / List (single column, centered) |
+| Feed sources | Toggle visibility, reorder — syncs automatically when new sources appear |
+
+### Technical
+| Capability | Detail |
+|-----------|--------|
+| RTL/LTR detection | Unicode range `\u0600–\u06FF` analysis per title/snippet |
+| Error resilience | `Promise.allSettled` — one feed failure never blocks others |
+| Hydration-safe state | All preferences use `useSyncExternalStore` (not `useState` + `useEffect`) |
+| SEO | Metadata API, JSON-LD (WebApplication + WebSite), sitemap, robots.txt |
+| Security headers | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` |
+| PWA manifest | Standalone display, themed icons, installable on mobile |
+| Build-time changelog | Git log parsed at build via `prebuild` script, served at `/changelog` |
 
 <br />
 
@@ -121,55 +165,57 @@ Open **[localhost:3000](http://localhost:3000)** — the feed begins streaming i
 
 ### `GET /api/feeds`
 
-Streams newline-delimited JSON (NDJSON). Each line is a self-contained JSON object.
-
-#### Stream Messages
+Streams newline-delimited JSON. Each line is a self-contained JSON object.
 
 ```jsonc
-// Batch — emitted as each feed source resolves
+// As each source resolves:
 { "type": "batch", "items": [...], "source": "Al Jazeera EN" }
 
-// Error — emitted when a single feed fails (others continue)
+// When a source fails (others continue):
 { "type": "error", "source": "NNA", "message": "HTTP 503" }
 
-// Done — emitted once when all feeds have been attempted
-{ "type": "done", "sources": 47, "errors": [...], "fetchedAt": "2026-03-02T12:00:00Z" }
+// After all sources are attempted:
+{ "type": "done", "sources": 44, "errors": [...], "fetchedAt": "2026-03-05T12:00:00Z" }
 ```
 
-#### FeedItem Schema
+<details>
+<summary><strong>FeedItem Schema</strong></summary>
 
 ```typescript
 interface FeedItem {
-  id: string              // Unique key: `${source}-${link || guid || title}`
-  title: string           // Article headline
-  link: string            // Original article URL
-  snippet: string         // First 200 chars of content (HTML stripped)
-  pubDate: string         // ISO 8601 timestamp
-  source: string          // Feed source display name
-  sourceColor?: string    // Hex brand color
-  sourceCategory: string  // "war" | "breaking" | "general"
-  image?: string          // Article image URL (optional)
+  id: string;              // `${source}-${link || guid || title}`
+  title: string;           // Article headline
+  link: string;            // Original article URL
+  snippet: string;         // First 200 chars, HTML stripped
+  pubDate: string;         // ISO 8601
+  source: string;          // Feed display name
+  sourceColor?: string;    // Brand color (OKLCh)
+  sourceCategory: string;  // "war" | "breaking" | "general"
+  image?: string;          // Article thumbnail URL
 }
 ```
 
-#### Response Headers
+</details>
+
+<details>
+<summary><strong>Response Headers</strong></summary>
 
 | Header | Value | Purpose |
 |--------|-------|---------|
 | `Content-Type` | `text/plain; charset=utf-8` | NDJSON stream |
-| `Cache-Control` | `no-cache, no-store` | Always fresh data |
+| `Cache-Control` | `no-cache, no-store` | Always fresh |
 | `X-Content-Type-Options` | `nosniff` | Prevent MIME sniffing |
-| `X-Frame-Options` | `DENY` | Clickjacking protection |
+| `X-Frame-Options` | `DENY` | Block clickjacking |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Privacy |
+
+</details>
 
 <br />
 
 ## Feed Sources
 
 <details>
-<summary><strong>🔴 War Focused — 17 sources</strong></summary>
-
-<br />
+<summary><strong>War Focused — 17 sources</strong></summary>
 
 | Source | Coverage |
 |--------|----------|
@@ -194,9 +240,7 @@ interface FeedItem {
 </details>
 
 <details>
-<summary><strong>🟡 Breaking News — 11 sources</strong></summary>
-
-<br />
+<summary><strong>Breaking News — 11 sources</strong></summary>
 
 | Source | Coverage |
 |--------|----------|
@@ -213,9 +257,7 @@ interface FeedItem {
 </details>
 
 <details>
-<summary><strong>⚪ General / Analysis — 19 sources</strong></summary>
-
-<br />
+<summary><strong>General / Analysis — 16 sources</strong></summary>
 
 **Arabic:** Al Jazeera AR, Sky News Arabia, BBC Arabic, BBC AR Middle East, France 24 AR, DW Arabic, Annahar, Al Arabiya, Asharq Al-Awsat, Lebanon Debate, Al Quds, Rai Al Youm
 
@@ -225,68 +267,89 @@ interface FeedItem {
 
 <br />
 
-## Configuration
+## Tech Stack
 
-### Adding a Feed
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| **Framework** | [Next.js 16](https://nextjs.org) App Router | Server components, route handlers, Metadata API |
+| **UI** | [React 19](https://react.dev) | `useSyncExternalStore` for hydration-safe localStorage |
+| **Language** | [TypeScript 5](https://typescriptlang.org) strict | End-to-end type safety |
+| **Styling** | [Tailwind CSS 4](https://tailwindcss.com) | CSS-based config, OKLCh color tokens |
+| **Components** | [shadcn/ui](https://ui.shadcn.com) + [Radix](https://radix-ui.com) | Accessible primitives (Sheet, Switch, Tooltip) |
+| **Fonts** | Poppins + [Tajawal](https://fonts.google.com/specimen/Tajawal) | Latin + Arabic via `next/font` |
+| **RSS** | [rss-parser](https://github.com/rbren/rss-parser) | XML parsing with media extraction |
+| **Streaming** | NDJSON via `ReadableStream` | Native, no libraries |
+| **Analytics** | Vercel Analytics + Speed Insights + GA4 | Performance + usage tracking |
+| **Deployment** | [Vercel](https://vercel.com) | Edge network, zero-config |
 
-Edit [`src/config/feeds.ts`](src/config/feeds.ts):
+<br />
 
-```typescript
-export const RSS_FEEDS: FeedSource[] = [
-  // ... existing feeds
-  {
-    name: "Your Source",
-    url: "https://example.com/rss",
-    color: "#hex-color",        // Accent color for the source badge
-    category: "war",            // "war" | "breaking" | "general"
-  },
-];
+## Project Structure
+
 ```
-
-The feed appears automatically on the next page load. No other changes needed.
-
-### Feed Categories
-
-| Category | Color | Purpose |
-|----------|-------|---------|
-| `war` | Red `#ef4444` | Conflict, military, humanitarian |
-| `breaking` | Amber `#f59e0b` | Fast-moving, time-sensitive news |
-| `general` | Gray `#6b7280` | Broader analysis and regional coverage |
-
-### User Preferences
-
-Preferences persist in `localStorage` under `lebmon-feed-prefs`:
-
-```json
-{
-  "order": ["Al Jazeera EN", "BBC ME", "..."],
-  "hidden": ["Source to hide"]
-}
-```
-
-Reset via browser console:
-
-```javascript
-localStorage.removeItem("lebmon-feed-prefs");
-location.reload();
+src/
+├── app/
+│   ├── layout.tsx                 # Root layout: fonts, SEO, JSON-LD, theme script
+│   ├── page.tsx                   # Home → renders <LiveFeed />
+│   ├── changelog/page.tsx         # Auto-generated from git history
+│   ├── globals.css                # Tailwind v4 + OKLCh tokens + font size presets
+│   ├── manifest.ts                # PWA manifest
+│   ├── robots.ts / sitemap.ts     # SEO
+│   ├── icon.tsx / apple-icon.tsx  # Dynamic favicons
+│   ├── opengraph-image.tsx        # Dynamic OG image
+│   └── api/feeds/route.ts         # NDJSON streaming RSS API
+│
+├── components/
+│   ├── live-feed.tsx              # Orchestrator: data + state → child components
+│   ├── feed-header.tsx            # Logo, stats, streaming indicator, toolbar
+│   ├── feed-filter-bar.tsx        # Category tabs + source chips
+│   ├── feed-content.tsx           # Card grid/list + infinite scroll + empty states
+│   ├── feed-card.tsx              # Article card (RTL-aware, memoized)
+│   ├── feed-settings.tsx          # Source management side panel
+│   ├── announcement-banner.tsx    # Dismissible banner
+│   ├── font-size-toggle.tsx       # 4-preset font size cycler
+│   ├── layout-toggle.tsx          # Grid / List switcher
+│   ├── theme-toggle.tsx           # Light / Dark toggle
+│   └── ui/                        # shadcn/ui primitives
+│
+├── hooks/
+│   ├── use-feed-stream.ts         # NDJSON streaming + merge + 30s poll
+│   ├── use-feed-prefs.ts          # Source visibility + order (localStorage)
+│   ├── use-layout.ts              # Grid / List preference
+│   ├── use-font-size.ts           # Font size preference
+│   └── use-theme.ts               # Light / Dark preference
+│
+├── config/
+│   └── feeds.ts                   # 44 RSS feed definitions + categories
+│
+└── scripts/
+    └── generate-changelog.ts      # Build-time git log → JSON
 ```
 
 <br />
 
-## Tech Stack
+## Configuration
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| **Framework** | [Next.js](https://nextjs.org) (App Router) | 16 |
-| **UI** | [React](https://react.dev) | 19 |
-| **Language** | [TypeScript](https://typescriptlang.org) (strict mode) | 5 |
-| **Styling** | [Tailwind CSS](https://tailwindcss.com) (CSS-based config) | 4 |
-| **Components** | [shadcn/ui](https://ui.shadcn.com) + [Radix UI](https://radix-ui.com) | latest |
-| **Icons** | [Lucide React](https://lucide.dev) | 0.576 |
-| **RSS Parsing** | [rss-parser](https://github.com/rbren/rss-parser) | 3.13 |
-| **Streaming** | NDJSON via `ReadableStream` | native |
-| **Fonts** | Poppins + Noto Sans Arabic | Google Fonts |
-| **Analytics** | Google Analytics via `@next/third-parties` | — |
+### Adding a Feed Source
+
+Edit [`src/config/feeds.ts`](src/config/feeds.ts):
+
+```typescript
+{
+  name: "Your Source",
+  url: "https://example.com/rss",
+  color: "#hex",               // Brand accent color
+  category: "war",             // "war" | "breaking" | "general"
+},
+```
+
+The source appears automatically on next page load. No other changes needed.
+
+### Adding a Category
+
+1. Add to `FeedCategory` type in `feeds.ts`
+2. Add entries to `CATEGORY_LABELS`, `CATEGORY_COLORS`, `CATEGORY_ORDER`
+3. Assign feeds — the UI picks it up automatically
 
 <br />
 
@@ -294,7 +357,7 @@ location.reload();
 
 ### Vercel (Recommended)
 
-Connect your GitHub repository — it deploys automatically on every push to `main`. No environment variables required.
+Connect your GitHub repo — it deploys on every push. No env vars needed.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ramyatrouny/leb-news-monitor)
 
@@ -322,242 +385,139 @@ CMD ["node", "server.js"]
 ### Self-Hosted
 
 ```bash
-npm run build
-NODE_ENV=production npm start
+npm run build && NODE_ENV=production npm start
 ```
 
-Binds to port 3000 by default. Use a reverse proxy (nginx, Caddy) for HTTPS in production.
+Port 3000 by default. Use nginx/Caddy for HTTPS.
 
 <br />
 
-## Security
+## Commands
 
-LEB Monitor ships with security headers enabled by default via [`next.config.ts`](next.config.ts):
-
-| Header | Value | Protection |
-|--------|-------|------------|
-| `X-Content-Type-Options` | `nosniff` | Prevents MIME type sniffing |
-| `X-Frame-Options` | `DENY` | Blocks clickjacking via iframes |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` | Controls referrer information leakage |
-
-The application fetches **only public RSS feeds** server-side. No user data is collected, no cookies are set, and no authentication is required. The `/api/` routes are blocked from search engine indexing via [`robots.ts`](src/app/robots.ts).
-
-<br />
-
-<details>
-<summary><strong>Project Structure</strong></summary>
-
-<br />
-
-```
-leb-monitor/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx              # Root layout, fonts, SEO metadata
-│   │   ├── page.tsx                # Home page (renders LiveFeed)
-│   │   ├── globals.css             # Tailwind v4 + OKLCh theme tokens
-│   │   ├── manifest.ts            # PWA manifest (standalone app)
-│   │   ├── robots.ts              # SEO robots.txt rules
-│   │   ├── sitemap.ts             # Dynamic sitemap generation
-│   │   ├── icon.tsx               # Dynamic favicon (32×32)
-│   │   ├── apple-icon.tsx         # Apple touch icon (180×180)
-│   │   └── api/feeds/
-│   │       └── route.ts           # NDJSON streaming RSS API
-│   │
-│   ├── components/
-│   │   ├── live-feed.tsx          # Main feed container + filters
-│   │   ├── feed-card.tsx          # Article card (RTL-aware, memoized)
-│   │   ├── feed-settings.tsx      # Feed management side panel
-│   │   └── ui/                    # shadcn/ui primitives
-│   │       ├── button.tsx
-│   │       ├── card.tsx
-│   │       ├── sheet.tsx
-│   │       ├── scroll-area.tsx
-│   │       ├── switch.tsx
-│   │       ├── badge.tsx
-│   │       ├── skeleton.tsx
-│   │       └── separator.tsx
-│   │
-│   ├── config/
-│   │   └── feeds.ts               # 47+ RSS feed definitions
-│   │
-│   ├── hooks/
-│   │   ├── use-feed-stream.ts     # NDJSON streaming + merge + 30s polling
-│   │   └── use-feed-prefs.ts      # localStorage preference management
-│   │
-│   └── lib/
-│       └── utils.ts               # cn() classname utility
-│
-├── public/                        # Static assets
-├── .github/
-│   └── pull_request_template.md   # PR template
-├── package.json
-├── tsconfig.json                  # TypeScript strict mode
-├── next.config.ts                 # Security headers
-├── components.json                # shadcn/ui config
-├── postcss.config.mjs             # Tailwind v4 PostCSS
-├── eslint.config.mjs              # ESLint + Next.js rules
-├── CONTRIBUTING.md                # Contributor guide
-└── LICENSE                        # MIT
-```
-
-</details>
-
-<br />
-
-## Contributing
-
-Contributions are welcome — from adding a single feed source to building new features.
-
-| I want to... | How |
-|---|---|
-| **Report a bug** | [Open a bug report](../../issues/new?template=bug_report.yml) |
-| **Request a feature** | [Open a feature request](../../issues/new?template=feature_request.yml) |
-| **Suggest a feed source** | [Open a feed source request](../../issues/new?template=feed_source.yml) |
-| **Find a feature to build** | Browse the [Feature Ideas catalog](docs/FEATURE_IDEAS.md) — 192 ideas across 16 categories |
-| **Submit code** | Read the [Contributing Guide](CONTRIBUTING.md) and open a PR |
-
-```bash
-git clone https://github.com/ramyatrouny/leb-news-monitor.git
-cd leb-monitor
-npm install
-npm run dev         # http://localhost:3000
-# make changes...
-npm run lint        # must pass
-npm run build       # must succeed
-git checkout -b feat/my-change
-git commit -m "feat: describe your change"
-git push origin feat/my-change
-# open a PR on GitHub
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide — PR templates, code style, commit conventions, and architecture walkthrough.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Development server with Turbopack |
+| `npm run build` | Production build (runs changelog generation via `prebuild`) |
+| `npm start` | Serve production build |
+| `npm run lint` | ESLint checks |
 
 <br />
 
 ## FAQ
 
 <details>
-<summary><strong>Some feeds show as "down" — is that normal?</strong></summary>
+<summary><strong>Some feeds show errors — is that normal?</strong></summary>
 
-<br />
-
-Yes. RSS feeds are third-party services. Some sources go down temporarily, block certain IPs, or rate-limit requests. The app handles this gracefully — failed feeds show a count in the status bar, but all other sources continue working.
-</details>
-
-<details>
-<summary><strong>I see 0 articles on first load</strong></summary>
-
-<br />
-
-The API fetches 47 feeds in parallel, which takes a few seconds. You should see a spinner and a "Streaming" indicator in the top bar. If nothing loads after 15 seconds:
-- Check the browser console (`F12` → Console) for errors
-- Make sure the dev server is running (`npm run dev`)
-- Some corporate/school networks block RSS feeds — try from a different network
-</details>
-
-<details>
-<summary><strong>Articles appear in the wrong language direction</strong></summary>
-
-<br />
-
-The app detects Arabic script via Unicode range (`\u0600–\u06FF`) and applies `dir="rtl"` automatically. If text direction looks wrong, it may be a feed returning content in an unexpected encoding — [open an issue](../../issues/new?template=bug_report.yml) with the source name.
-</details>
-
-<details>
-<summary><strong>Can I deploy this publicly?</strong></summary>
-
-<br />
-
-Yes. The app has no API keys, no database, and no authentication. It fetches public RSS feeds server-side and streams them to the browser. Deploy to Vercel, a VPS, or any Node.js host. See [Deployment](#deployment).
+Yes. RSS feeds are third-party services. Sources go down, rate-limit, or block IPs temporarily. LEB Monitor handles this gracefully — failed feeds are reported in the status bar, but all others continue streaming.
 </details>
 
 <details>
 <summary><strong>Why NDJSON instead of SSE or WebSockets?</strong></summary>
 
-<br />
-
-NDJSON over a simple `fetch()` is the lightest approach — no special client libraries, no connection management, and full compatibility with standard HTTP caching and proxies. Each line is a self-contained JSON object, making it trivial to parse progressively with `ReadableStream`.
+NDJSON over `fetch()` is the lightest approach — no client libraries, no connection management, full HTTP proxy compatibility. Each line is self-contained JSON, trivially parsed with `ReadableStream`. SSE adds reconnection complexity we don't need; WebSockets are overkill for 30s polling.
 </details>
 
 <details>
-<summary><strong>A feed I added doesn't show any articles</strong></summary>
+<summary><strong>Why useSyncExternalStore instead of useState + useEffect?</strong></summary>
 
-<br />
+`useState` + `useEffect` for localStorage causes hydration mismatches (server renders default, client reads localStorage, then re-renders). `useSyncExternalStore` with `getServerSnapshot` handles this correctly — React knows the server snapshot is a placeholder and reconciles without tearing.
+</details>
+
+<details>
+<summary><strong>Can I deploy this publicly?</strong></summary>
+
+Yes. No API keys, no database, no auth. It fetches public RSS feeds server-side. Deploy to Vercel, a VPS, or any Node.js host.
+</details>
+
+<details>
+<summary><strong>A feed I added shows no articles</strong></summary>
 
 Common causes:
-1. The URL returns HTML, not XML — verify with `curl -s "URL" | head -20`
-2. The feed uses a non-standard format the parser can't handle
-3. The source blocks server-side requests (check for 403/401 errors in the terminal)
-4. The feed returns items with no `<title>` or `<link>` — the parser needs at least a title
+1. URL returns HTML, not XML — verify: `curl -s "URL" | head -5`
+2. Source blocks server requests (403/401 in terminal)
+3. Items lack `<title>` or `<link>` — the parser needs at least a title
+4. Non-standard XML encoding — check the terminal for parse errors
 </details>
 
 <details>
-<summary><strong>How do I add a new feed category?</strong></summary>
+<summary><strong>How do I reset all preferences?</strong></summary>
 
-<br />
-
-1. Add the category to the `FeedCategory` type in [`src/config/feeds.ts`](src/config/feeds.ts)
-2. Add a label in `CATEGORY_LABELS` and a color in `CATEGORY_COLORS`
-3. Add it to the `CATEGORY_ORDER` array
-4. Assign feeds to it — the UI picks it up automatically
+```javascript
+// Browser console:
+Object.keys(localStorage).filter(k => k.startsWith("lebmon-")).forEach(k => localStorage.removeItem(k));
+location.reload();
+```
 </details>
 
 <br />
 
 ## Roadmap
 
-Planned features and improvements — contributions welcome on any of these:
-
-### Core Features
-- [ ] **Full-text search** — Filter articles by keyword across all sources in real time
-- [ ] **Bookmarks / saved articles** — Save important articles locally for later reading
-- [ ] **Notification system** — Browser push notifications for breaking news from selected sources
-- [ ] **Timeline view** — Chronological timeline visualization of events as they unfold
-- [ ] **Article clustering** — Group related articles from different sources covering the same event
+### Core
+- [ ] Full-text search across all sources
+- [ ] Bookmarks / saved articles (localStorage)
+- [ ] Browser push notifications for breaking news
+- [ ] Article clustering — group related coverage across sources
+- [ ] Timeline view — chronological event visualization
 
 ### Sources & Data
-- [ ] **Telegram channel integration** — Ingest updates from key Telegram channels alongside RSS
-- [ ] **Twitter/X feed support** — Pull posts from conflict reporters and official accounts
-- [ ] **Source credibility indicators** — Display trust/bias ratings from media bias databases
-- [ ] **Historical archive** — Persist articles to a database for historical search and analysis
-- [ ] **Feed health dashboard** — Admin view showing uptime, latency, and error rates per source
+- [ ] Telegram channel ingestion
+- [ ] Twitter/X feed support
+- [ ] Source credibility indicators
+- [ ] Historical archive with database persistence
+- [ ] Feed health dashboard (uptime, latency per source)
 
 ### UI / UX
-- [x] **Light mode toggle** — User-switchable light/dark theme with system preference detection and localStorage persistence
-- [ ] **Map view** — Plot geotagged articles on an interactive map of the region
-- [ ] **Multi-column layout customization** — Let users choose grid density (compact / comfortable / spacious)
-- [ ] **Reading mode** — Inline article preview without leaving the app
-- [ ] **Keyboard shortcuts** — Navigate feeds, switch categories, and open articles via keyboard
+- [x] Light / Dark theme with system detection
+- [x] Grid / List layout toggle
+- [x] Font size presets (4 levels)
+- [x] Tooltip system on all controls
+- [x] Build-time changelog at `/changelog`
+- [ ] Map view — geotagged articles on interactive map
+- [ ] Reading mode — inline article preview
+- [ ] Keyboard shortcuts
 
-### Platform & Performance
-- [ ] **Offline support (PWA)** — Cache recent articles for offline reading via service worker
-- [ ] **Server-side caching** — Redis or in-memory cache layer to reduce RSS fetch frequency
-- [ ] **i18n framework** — Full UI translation support (Arabic, French, English)
-- [ ] **RSS feed export** — Generate a unified RSS/Atom feed from LEBMON's aggregated output
-- [ ] **Mobile app (React Native)** — Native mobile experience with push notifications
+### Platform
+- [ ] Offline support (PWA service worker)
+- [ ] Server-side caching layer (Redis)
+- [ ] i18n (Arabic, French, English UI)
+- [ ] Unified RSS/Atom feed export
+- [ ] Mobile app (React Native)
 
-### Analytics & Intelligence
-- [ ] **Sentiment analysis** — NLP-based sentiment tagging per article (escalation / de-escalation)
-- [ ] **Trend detection** — Surface topics gaining momentum across multiple sources
-- [ ] **Daily digest email** — Automated summary of top stories delivered to subscribers
-- [ ] **Source comparison** — Side-by-side view showing how different outlets cover the same story
+> **192 more ideas** in the [Feature Ideas catalog](docs/FEATURE_IDEAS.md) with priority matrices and implementation phases.
 
-> Looking for more ideas? Check the full **[Feature Ideas catalog](docs/FEATURE_IDEAS.md)** with 192 features across 16 categories, priority matrices, and implementation phases.
->
-> Have an idea not listed here? [Open a feature request](../../issues/new?template=feature_request.yml).
+<br />
+
+## Contributing
+
+Contributions welcome — from adding a feed source to building features.
+
+```bash
+git clone https://github.com/ramyatrouny/leb-news-monitor.git
+cd leb-news-monitor && npm install && npm run dev
+# make changes...
+npm run lint && npm run build    # both must pass
+```
+
+| I want to... | How |
+|---|---|
+| Report a bug | [Bug report](../../issues/new?template=bug_report.yml) |
+| Request a feature | [Feature request](../../issues/new?template=feature_request.yml) |
+| Suggest a source | [Feed source request](../../issues/new?template=feed_source.yml) |
+| Find something to build | [Feature Ideas catalog](docs/FEATURE_IDEAS.md) |
+| Submit code | Read [CONTRIBUTING.md](CONTRIBUTING.md), open a PR |
 
 <br />
 
 ## License
 
-This project is open source under the [MIT License](LICENSE).
+[MIT](LICENSE) — use it however you want.
 
 <br />
 
 ## Acknowledgments
 
-Built with data from independent journalists, humanitarian organizations, and news agencies covering the Lebanon–Israel conflict. This tool aggregates publicly available RSS feeds and does not generate or editorialize content.
+Built with data from independent journalists, humanitarian organizations, and international news agencies covering the Lebanon–Israel conflict. This tool aggregates publicly available RSS feeds and does not generate, editorialize, or modify content.
 
 <br />
 
@@ -565,8 +525,8 @@ Built with data from independent journalists, humanitarian organizations, and ne
 
 <div align="center">
 
-**LEBMON** — Conflict Monitor v1.0
+**LEB MONITOR** &nbsp;&middot;&nbsp; Conflict Intelligence, Real-Time
 
-[Live Demo](https://lebmonitor.com) · [Report Bug](../../issues/new?template=bug_report.yml) · [Contributing](CONTRIBUTING.md)
+[lebmonitor.com](https://lebmonitor.com) &nbsp;&middot;&nbsp; [Report Bug](../../issues/new?template=bug_report.yml) &nbsp;&middot;&nbsp; [Contributing](CONTRIBUTING.md)
 
 </div>

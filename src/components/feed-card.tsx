@@ -1,12 +1,30 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, type ReactNode } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
 
 const RTL_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 
 function isRtl(text: string): boolean {
   return RTL_REGEX.test(text);
+}
+
+/** Highlight all occurrences of `query` within `text` */
+function highlightText(text: string, query: string): ReactNode {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = text.split(regex);
+  if (parts.length <= 1) return text;
+  return parts.map((part, i) =>
+    regex.test(part) ? (
+      <mark key={i} className="bg-primary/25 text-foreground rounded-sm px-0.5">
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
 }
 
 function timeAgo(dateStr: string): string {
@@ -23,9 +41,11 @@ function timeAgo(dateStr: string): string {
 export const FeedCard = memo(function FeedCard({
   item,
   isNew,
+  highlightQuery,
 }: {
   item: FeedItem;
   isNew?: boolean;
+  highlightQuery?: string;
 }) {
   const rtl = isRtl(item.title);
   const [imgError, setImgError] = useState(false);
@@ -73,7 +93,7 @@ export const FeedCard = memo(function FeedCard({
                 dir={rtl ? "rtl" : "ltr"}
                 lang={rtl ? "ar" : undefined}
               >
-                {item.title}
+                {highlightQuery ? highlightText(item.title, highlightQuery) : item.title}
               </h3>
 
               {item.snippet && (
@@ -82,7 +102,7 @@ export const FeedCard = memo(function FeedCard({
                   dir={rtl ? "rtl" : "ltr"}
                   lang={rtl ? "ar" : undefined}
                 >
-                  {item.snippet}
+                  {highlightQuery ? highlightText(item.snippet, highlightQuery) : item.snippet}
                 </p>
               )}
             </div>

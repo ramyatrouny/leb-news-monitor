@@ -8,10 +8,12 @@ import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
+import { useSearch, applySearchFilters } from "@/hooks/use-search";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
 import { FeedContent } from "./feed-content";
+import { SearchBar } from "./search-bar";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -25,6 +27,17 @@ export function LiveFeed() {
   const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming } = useFeedStream();
   const { prefs, toggleSource, syncSources } = useFeedPrefs();
   const { layout } = useLayout();
+  const {
+    filters,
+    setQuery,
+    commitSearch,
+    updateFilter,
+    resetFilters,
+    hasActiveFilters,
+    recentSearches,
+    removeRecent,
+    clearRecent,
+  } = useSearch();
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
@@ -56,16 +69,24 @@ export function LiveFeed() {
     }
   }, [isStreaming, grouped, syncSources]);
 
-  // Filtered items
+  // Filtered items (category/source bar + search filters)
   const filteredItems = useMemo(() => {
     if (!allItems.length) return [];
-    return allItems.filter((item) => {
+    // First: apply the existing category/source/hidden filters
+    const preFiltered = allItems.filter((item) => {
       if (prefs.hidden.has(item.source)) return false;
       if (activeCategory !== "all" && item.sourceCategory !== activeCategory) return false;
       if (activeSource && item.source !== activeSource) return false;
       return true;
     });
-  }, [allItems, prefs.hidden, activeCategory, activeSource]);
+    // Then: apply search + combined filters
+    return applySearchFilters(preFiltered, filters);
+  }, [allItems, prefs.hidden, activeCategory, activeSource, filters]);
+
+  // Reset visible count when search filters change
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [filters]);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
 
@@ -122,6 +143,9 @@ export function LiveFeed() {
     return counts;
   }, [allItems, prefs.hidden]);
 
+  // All source names for the search filter dropdown
+  const allSourceNames = useMemo(() => [...grouped.keys()].sort(), [grouped]);
+
   return (
     <TooltipProvider>
     <div className="h-screen flex flex-col overflow-hidden bg-background">
@@ -137,6 +161,19 @@ export function LiveFeed() {
       />
 
       <AnnouncementBanner />
+
+      <SearchBar
+        filters={filters}
+        onQueryChange={setQuery}
+        onCommitSearch={commitSearch}
+        onFilterChange={updateFilter}
+        onReset={resetFilters}
+        hasActiveFilters={hasActiveFilters}
+        recentSearches={recentSearches}
+        onRemoveRecent={removeRecent}
+        onClearRecent={clearRecent}
+        sourceNames={allSourceNames}
+      />
 
       <FeedFilterBar
         activeCategory={activeCategory}
@@ -157,6 +194,7 @@ export function LiveFeed() {
         isLoading={isLoading}
         hasData={grouped.size > 0}
         onLoadMore={handleLoadMore}
+        highlightQuery={filters.query.trim()}
       />
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">

@@ -11,12 +11,14 @@ import { useLayout } from "@/hooks/use-layout";
 import { useSearch, applySearchFilters } from "@/hooks/use-search";
 import { useDateFilter, applyDateFilter } from "@/hooks/use-date-filter";
 import { useSimilar } from "@/hooks/use-similar";
+import { useTags } from "@/hooks/use-tags";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
 import { FeedContent } from "./feed-content";
 import { SearchBar } from "./search-bar";
 import { DatePickerFilter } from "./date-picker-filter";
+import { TagBrowser } from "./tag-browser";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -57,6 +59,23 @@ export function LiveFeed() {
     showSimilar,
     clearSimilar,
   } = useSimilar(allItems);
+
+  const {
+    allTags,
+    activeTags,
+    toggleTag,
+    clearTags,
+    filterByTags,
+    getItemTags,
+    hasActiveTags: hasActiveTagFilters,
+  } = useTags(allItems);
+
+  // Build tagIndex map for article cards
+  const tagIndex = useMemo(() => {
+    const map = new Map<string, import("@/lib/entity-extractor").TagInfo>();
+    for (const t of allTags) map.set(t.tag, t);
+    return map;
+  }, [allTags]);
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
@@ -101,8 +120,10 @@ export function LiveFeed() {
     // Then: apply search + combined filters
     const searched = applySearchFilters(preFiltered, filters);
     // Then: apply standalone date picker filter
-    return applyDateFilter(searched, dateRange);
-  }, [allItems, prefs.hidden, activeCategory, activeSource, filters, dateRange]);
+    const dated = applyDateFilter(searched, dateRange);
+    // Then: apply tag filters
+    return filterByTags(dated);
+  }, [allItems, prefs.hidden, activeCategory, activeSource, filters, dateRange, filterByTags]);
 
   // When "More like this" is active, override with similar items
   const displayItems = isSimilarMode && similarItems ? similarItems : filteredItems;
@@ -203,6 +224,15 @@ export function LiveFeed() {
                 hasDateFilter={hasDateFilter}
               />
             }
+            tagBrowser={
+              <TagBrowser
+                allTags={allTags}
+                activeTags={activeTags}
+                onToggleTag={toggleTag}
+                onClear={clearTags}
+                hasActiveTags={hasActiveTagFilters}
+              />
+            }
           />
         </div>
       </div>
@@ -258,6 +288,9 @@ export function LiveFeed() {
         onLoadMore={handleLoadMore}
         highlightQuery={filters.query.trim()}
         onSimilar={showSimilar}
+        getItemTags={getItemTags}
+        tagIndex={tagIndex}
+        onTagClick={toggleTag}
       />
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">

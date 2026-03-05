@@ -1,7 +1,33 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, useSyncExternalStore } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
+
+/** Shared minute-tick store — all FeedCards subscribe to a single interval */
+let tick = 0;
+const listeners = new Set<() => void>();
+let intervalId: ReturnType<typeof setInterval> | null = null;
+
+function subscribeTimeTick(cb: () => void) {
+  listeners.add(cb);
+  if (listeners.size === 1) {
+    intervalId = setInterval(() => {
+      tick++;
+      listeners.forEach((l) => l());
+    }, 60_000);
+  }
+  return () => {
+    listeners.delete(cb);
+    if (listeners.size === 0 && intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
+  };
+}
+
+function getTimeTick() {
+  return tick;
+}
 
 const RTL_REGEX = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
 
@@ -27,6 +53,7 @@ export const FeedCard = memo(function FeedCard({
   item: FeedItem;
   isNew?: boolean;
 }) {
+  useSyncExternalStore(subscribeTimeTick, getTimeTick, getTimeTick);
   const rtl = isRtl(item.title);
   const [imgError, setImgError] = useState(false);
   const showImage = item.image && !imgError;

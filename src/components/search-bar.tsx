@@ -8,6 +8,7 @@ import {
   CATEGORY_ORDER,
 } from "@/config/feeds";
 import type { SearchFilters } from "@/hooks/use-search";
+import type { ReactNode } from "react";
 
 // Icons
 
@@ -58,6 +59,8 @@ interface SearchBarProps {
   onRemoveRecent: (term: string) => void;
   onClearRecent: () => void;
   sourceNames: string[];
+  /** Slot for the date picker rendered next to the Filters button */
+  datePicker?: ReactNode;
 }
 
 export function SearchBar({
@@ -71,6 +74,7 @@ export function SearchBar({
   onRemoveRecent,
   onClearRecent,
   sourceNames,
+  datePicker,
 }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -122,8 +126,8 @@ export function SearchBar({
   ].filter(Boolean).length;
 
   return (
-    <div className="shrink-0 border-b border-border/40 bg-secondary/5 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
-      <div className="px-3 sm:px-4 py-2 flex items-center gap-2" ref={containerRef}>
+    <div>
+      <div className="flex items-center gap-2" ref={containerRef}>
         {/* Search input */}
         <div className="relative flex-1 max-w-xl">
           <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
@@ -209,6 +213,9 @@ export function SearchBar({
             </span>
           )}
         </button>
+
+        {/* Date picker (slot) */}
+        {datePicker}
 
         {/* Reset all */}
         {hasActiveFilters && (

@@ -9,11 +9,13 @@ import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
 import { useSearch, applySearchFilters } from "@/hooks/use-search";
+import { useDateFilter, applyDateFilter } from "@/hooks/use-date-filter";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
 import { FeedContent } from "./feed-content";
 import { SearchBar } from "./search-bar";
+import { DatePickerFilter } from "./date-picker-filter";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -38,6 +40,14 @@ export function LiveFeed() {
     removeRecent,
     clearRecent,
   } = useSearch();
+  const {
+    dateRange,
+    setFrom: setDateFrom,
+    setTo: setDateTo,
+    setRange: setDateRange,
+    clearDate,
+    hasDateFilter,
+  } = useDateFilter();
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
@@ -80,13 +90,10 @@ export function LiveFeed() {
       return true;
     });
     // Then: apply search + combined filters
-    return applySearchFilters(preFiltered, filters);
-  }, [allItems, prefs.hidden, activeCategory, activeSource, filters]);
-
-  // Reset visible count when search filters change
-  useEffect(() => {
-    setVisibleCount(ITEMS_PER_PAGE);
-  }, [filters]);
+    const searched = applySearchFilters(preFiltered, filters);
+    // Then: apply standalone date picker filter
+    return applyDateFilter(searched, dateRange);
+  }, [allItems, prefs.hidden, activeCategory, activeSource, filters, dateRange]);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
 
@@ -162,18 +169,32 @@ export function LiveFeed() {
 
       <AnnouncementBanner />
 
-      <SearchBar
-        filters={filters}
-        onQueryChange={setQuery}
-        onCommitSearch={commitSearch}
-        onFilterChange={updateFilter}
-        onReset={resetFilters}
-        hasActiveFilters={hasActiveFilters}
-        recentSearches={recentSearches}
-        onRemoveRecent={removeRecent}
-        onClearRecent={clearRecent}
-        sourceNames={allSourceNames}
-      />
+      <div className="shrink-0 border-b border-border/40 bg-secondary/5 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <div className="px-3 sm:px-4 py-2">
+          <SearchBar
+            filters={filters}
+            onQueryChange={setQuery}
+            onCommitSearch={commitSearch}
+            onFilterChange={updateFilter}
+            onReset={resetFilters}
+            hasActiveFilters={hasActiveFilters}
+            recentSearches={recentSearches}
+            onRemoveRecent={removeRecent}
+            onClearRecent={clearRecent}
+            sourceNames={allSourceNames}
+            datePicker={
+              <DatePickerFilter
+                dateRange={dateRange}
+                onFromChange={setDateFrom}
+                onToChange={setDateTo}
+                onRangeChange={setDateRange}
+                onClear={clearDate}
+                hasDateFilter={hasDateFilter}
+              />
+            }
+          />
+        </div>
+      </div>
 
       <FeedFilterBar
         activeCategory={activeCategory}

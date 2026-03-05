@@ -54,7 +54,7 @@ export const FeedCard = memo(function FeedCard({
                 style={{ backgroundColor: item.sourceColor || "oklch(0.50 0 0)" }}
               />
               <span
-                className="text-[11px] sm:text-[10px] font-semibold uppercase tracking-wider truncate"
+                className="feed-source font-semibold uppercase tracking-wider truncate"
                 style={{ color: item.sourceColor || "oklch(0.65 0.22 25)" }}
               >
                 {item.source}
@@ -69,7 +69,7 @@ export const FeedCard = memo(function FeedCard({
           <div className="flex gap-3 sm:gap-2.5">
             <div className="flex-1 min-w-0">
               <h3
-                className="text-sm sm:text-[13px] font-medium leading-[1.4] text-foreground/90 group-hover:text-foreground transition-colors line-clamp-2"
+                className="feed-title font-medium leading-[1.4] text-foreground/90 group-hover:text-foreground transition-colors line-clamp-2"
                 dir={rtl ? "rtl" : "ltr"}
                 lang={rtl ? "ar" : undefined}
               >
@@ -78,7 +78,7 @@ export const FeedCard = memo(function FeedCard({
 
               {item.snippet && (
                 <p
-                  className="mt-1 text-xs sm:text-[11px] leading-normal text-muted-foreground line-clamp-2"
+                  className="feed-snippet mt-1 leading-normal text-muted-foreground line-clamp-2"
                   dir={rtl ? "rtl" : "ltr"}
                   lang={rtl ? "ar" : undefined}
                 >

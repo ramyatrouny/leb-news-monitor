@@ -11,6 +11,7 @@ import {
 import { FeedCard, FeedCardSkeleton } from "./feed-card";
 import { FeedSettings } from "./feed-settings";
 import { ThemeToggle } from "./theme-toggle";
+import { FontSizeToggle } from "./font-size-toggle";
 import { AnnouncementBanner } from "./announcement-banner";
 import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
@@ -218,6 +219,7 @@ export function LiveFeed() {
               {totalItems}
             </span>
 
+            <FontSizeToggle />
             <ThemeToggle />
             <FeedSettings
               sources={allSourceInfo}

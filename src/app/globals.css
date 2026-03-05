@@ -125,6 +125,28 @@
   }
 }
 
+/* Font size presets */
+:root { --font-scale: 1; }
+.font-size-small { --font-scale: 0.875; }
+.font-size-medium { --font-scale: 1; }
+.font-size-large { --font-scale: 1.125; }
+.font-size-xlarge { --font-scale: 1.25; }
+
+.font-size-small .feed-title { font-size: 12px; }
+.font-size-medium .feed-title { font-size: 13px; }
+.font-size-large .feed-title { font-size: 15px; }
+.font-size-xlarge .feed-title { font-size: 17px; }
+
+.font-size-small .feed-snippet { font-size: 10px; }
+.font-size-medium .feed-snippet { font-size: 11px; }
+.font-size-large .feed-snippet { font-size: 13px; }
+.font-size-xlarge .feed-snippet { font-size: 15px; }
+
+.font-size-small .feed-source { font-size: 9px; }
+.font-size-medium .feed-source { font-size: 10px; }
+.font-size-large .feed-source { font-size: 11px; }
+.font-size-xlarge .feed-source { font-size: 12px; }
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 4px;

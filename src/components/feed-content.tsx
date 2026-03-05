@@ -3,6 +3,7 @@
 import { useRef, useCallback } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
 import type { FeedLayout } from "@/hooks/use-layout";
+import type { TagInfo } from "@/lib/entity-extractor";
 import { FeedCard, FeedCardSkeleton } from "./feed-card";
 
 interface FeedContentProps {
@@ -14,6 +15,11 @@ interface FeedContentProps {
   isLoading: boolean;
   hasData: boolean;
   onLoadMore: () => void;
+  highlightQuery?: string;
+  onSimilar?: (item: FeedItem) => void;
+  getItemTags?: (itemId: string) => string[];
+  tagIndex?: Map<string, TagInfo>;
+  onTagClick?: (tag: string) => void;
 }
 
 export function FeedContent({
@@ -25,6 +31,11 @@ export function FeedContent({
   isLoading,
   hasData,
   onLoadMore,
+  highlightQuery,
+  onSimilar,
+  getItemTags,
+  tagIndex,
+  onTagClick,
 }: FeedContentProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevObserverRef = useRef<IntersectionObserver | null>(null);
@@ -65,7 +76,7 @@ export function FeedContent({
         {!isLoading && items.length > 0 && (
           <div key={layout} className={`layout-enter ${layoutClass}`}>
             {items.map((item) => (
-              <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} />
+              <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} highlightQuery={highlightQuery} onSimilar={onSimilar} itemTags={getItemTags?.(item.id)} tagIndex={tagIndex} onTagClick={onTagClick} />
             ))}
           </div>
         )}

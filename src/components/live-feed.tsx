@@ -8,10 +8,17 @@ import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
+import { useSearch, applySearchFilters } from "@/hooks/use-search";
+import { useDateFilter, applyDateFilter } from "@/hooks/use-date-filter";
+import { useSimilar } from "@/hooks/use-similar";
+import { useTags } from "@/hooks/use-tags";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
 import { FeedContent } from "./feed-content";
+import { SearchBar } from "./search-bar";
+import { DatePickerFilter } from "./date-picker-filter";
+import { TagBrowser } from "./tag-browser";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -25,6 +32,50 @@ export function LiveFeed() {
   const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming } = useFeedStream();
   const { prefs, toggleSource, syncSources } = useFeedPrefs();
   const { layout } = useLayout();
+  const {
+    filters,
+    setQuery,
+    commitSearch,
+    updateFilter,
+    resetFilters,
+    hasActiveFilters,
+    recentSearches,
+    removeRecent,
+    clearRecent,
+  } = useSearch();
+  const {
+    dateRange,
+    setFrom: setDateFrom,
+    setTo: setDateTo,
+    setRange: setDateRange,
+    clearDate,
+    hasDateFilter,
+  } = useDateFilter();
+
+  const {
+    anchorItem,
+    similarItems,
+    isActive: isSimilarMode,
+    showSimilar,
+    clearSimilar,
+  } = useSimilar(allItems);
+
+  const {
+    allTags,
+    activeTags,
+    toggleTag,
+    clearTags,
+    filterByTags,
+    getItemTags,
+    hasActiveTags: hasActiveTagFilters,
+  } = useTags(allItems);
+
+  // Build tagIndex map for article cards
+  const tagIndex = useMemo(() => {
+    const map = new Map<string, import("@/lib/entity-extractor").TagInfo>();
+    for (const t of allTags) map.set(t.tag, t);
+    return map;
+  }, [allTags]);
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
@@ -56,18 +107,27 @@ export function LiveFeed() {
     }
   }, [isStreaming, grouped, syncSources]);
 
-  // Filtered items
+  // Filtered items (category/source bar + search filters)
   const filteredItems = useMemo(() => {
     if (!allItems.length) return [];
-    return allItems.filter((item) => {
+    // First: apply the existing category/source/hidden filters
+    const preFiltered = allItems.filter((item) => {
       if (prefs.hidden.has(item.source)) return false;
       if (activeCategory !== "all" && item.sourceCategory !== activeCategory) return false;
       if (activeSource && item.source !== activeSource) return false;
       return true;
     });
-  }, [allItems, prefs.hidden, activeCategory, activeSource]);
+    // Then: apply search + combined filters
+    const searched = applySearchFilters(preFiltered, filters);
+    // Then: apply standalone date picker filter
+    const dated = applyDateFilter(searched, dateRange);
+    // Then: apply tag filters
+    return filterByTags(dated);
+  }, [allItems, prefs.hidden, activeCategory, activeSource, filters, dateRange, filterByTags]);
 
-  const visibleItems = filteredItems.slice(0, visibleCount);
+  // When "More like this" is active, override with similar items
+  const displayItems = isSimilarMode && similarItems ? similarItems : filteredItems;
+  const visibleItems = displayItems.slice(0, visibleCount);
 
   // Filter handlers
   const handleCategoryChange = useCallback((cat: FeedCategory | "all") => {
@@ -122,6 +182,9 @@ export function LiveFeed() {
     return counts;
   }, [allItems, prefs.hidden]);
 
+  // All source names for the search filter dropdown
+  const allSourceNames = useMemo(() => [...grouped.keys()].sort(), [grouped]);
+
   return (
     <TooltipProvider>
     <div className="h-screen flex flex-col overflow-hidden bg-background">
@@ -138,6 +201,72 @@ export function LiveFeed() {
 
       <AnnouncementBanner />
 
+      <div className="shrink-0 border-b border-border/40 bg-secondary/5 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <div className="px-3 sm:px-4 py-2">
+          <SearchBar
+            filters={filters}
+            onQueryChange={setQuery}
+            onCommitSearch={commitSearch}
+            onFilterChange={updateFilter}
+            onReset={resetFilters}
+            hasActiveFilters={hasActiveFilters}
+            recentSearches={recentSearches}
+            onRemoveRecent={removeRecent}
+            onClearRecent={clearRecent}
+            sourceNames={allSourceNames}
+            datePicker={
+              <DatePickerFilter
+                dateRange={dateRange}
+                onFromChange={setDateFrom}
+                onToChange={setDateTo}
+                onRangeChange={setDateRange}
+                onClear={clearDate}
+                hasDateFilter={hasDateFilter}
+              />
+            }
+            tagBrowser={
+              <TagBrowser
+                allTags={allTags}
+                activeTags={activeTags}
+                onToggleTag={toggleTag}
+                onClear={clearTags}
+                hasActiveTags={hasActiveTagFilters}
+              />
+            }
+          />
+        </div>
+      </div>
+
+      {/* "More like this" banner */}
+      {isSimilarMode && anchorItem && (
+        <div className="shrink-0 border-b border-primary/20 bg-primary/5 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+          <div className="px-3 sm:px-4 py-2 flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary shrink-0">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+              <path d="M8 11h6" />
+              <path d="M11 8v6" />
+            </svg>
+            <span className="text-xs sm:text-[11px] text-foreground/80 truncate">
+              Similar to: <strong className="font-semibold">{anchorItem.title}</strong>
+            </span>
+            <span className="text-[10px] text-muted-foreground/60 shrink-0">
+              {similarItems?.length ?? 0} result{similarItems?.length !== 1 ? "s" : ""}
+            </span>
+            <button
+              onClick={clearSimilar}
+              className="ml-auto shrink-0 p-1 rounded hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              title="Exit similar mode"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <FeedFilterBar
         activeCategory={activeCategory}
         activeSource={activeSource}
@@ -151,12 +280,17 @@ export function LiveFeed() {
       <FeedContent
         items={visibleItems}
         newIds={newIds}
-        filteredCount={filteredItems.length}
+        filteredCount={displayItems.length}
         visibleCount={visibleCount}
         layout={layout}
         isLoading={isLoading}
         hasData={grouped.size > 0}
         onLoadMore={handleLoadMore}
+        highlightQuery={filters.query.trim()}
+        onSimilar={showSimilar}
+        getItemTags={getItemTags}
+        tagIndex={tagIndex}
+        onTagClick={toggleTag}
       />
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">

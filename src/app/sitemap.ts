@@ -1,9 +1,11 @@
 import type { MetadataRoute } from "next";
 
+const BASE_URL = "https://lebmonitor.com";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: "https://leb-news-monitor.vercel.app",
+      url: BASE_URL,
       lastModified: new Date(),
       changeFrequency: "always",
       priority: 1,

@@ -23,47 +23,124 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://leb-news-monitor.vercel.app"),
+  metadataBase: new URL("https://lebmonitor.com"),
   title: {
-    default: "LEB Monitor — Live Conflict Feed",
+    default:
+      "LEB Monitor — Live Lebanon-Israel Conflict News Feed | Real-Time Updates",
     template: "%s | LEB Monitor",
   },
   description:
-    "Realtime multi-source news monitor aggregating 47+ RSS feeds covering the Lebanon-Israel conflict, humanitarian updates, and Middle East breaking news.",
+    "Real-time multi-source news monitor aggregating 47+ RSS feeds covering the Lebanon-Israel conflict, humanitarian updates, UNIFIL reports, ceasefire developments, and Middle East breaking news. Updated every minute.",
   keywords: [
-    "Lebanon",
-    "Israel",
+    "Lebanon news",
+    "Israel news",
+    "Lebanon Israel conflict",
+    "Middle East news live",
     "conflict monitor",
-    "Middle East news",
-    "RSS aggregator",
-    "breaking news",
-    "humanitarian",
-    "ceasefire",
-    "UNIFIL",
-    "realtime feed",
+    "RSS news aggregator",
+    "breaking news Middle East",
+    "humanitarian crisis Lebanon",
+    "ceasefire updates",
+    "UNIFIL reports",
+    "realtime news feed",
+    "Lebanon war updates",
+    "Hezbollah news",
+    "IDF operations",
+    "Beirut news",
+    "South Lebanon",
   ],
   authors: [{ name: "LEB Monitor" }],
   creator: "LEB Monitor",
+  publisher: "LEB Monitor",
+  category: "News",
   openGraph: {
-    title: "LEB Monitor — Live Conflict Feed",
+    title: "LEB Monitor — Live Lebanon-Israel Conflict News Feed",
     description:
-      "Realtime multi-source news monitor aggregating 47+ RSS feeds covering the Lebanon-Israel conflict.",
+      "Real-time multi-source news monitor aggregating 47+ RSS feeds covering the Lebanon-Israel conflict, humanitarian updates, and Middle East breaking news.",
     type: "website",
     locale: "en_US",
     siteName: "LEB Monitor",
+    url: "https://lebmonitor.com",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "LEB Monitor — Live Lebanon-Israel Conflict News Feed",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
-    title: "LEB Monitor — Live Conflict Feed",
+    card: "summary_large_image",
+    title: "LEB Monitor — Live Lebanon-Israel Conflict News Feed",
     description:
-      "Realtime multi-source news monitor for the Lebanon-Israel conflict.",
+      "Real-time multi-source news monitor aggregating 47+ RSS feeds for the Lebanon-Israel conflict.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   alternates: {
-    canonical: "/",
+    canonical: "https://lebmonitor.com",
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "LEB Monitor",
+  alternateName: "Lebanon-Israel Conflict Monitor",
+  url: "https://lebmonitor.com",
+  description:
+    "Real-time multi-source news monitor aggregating 47+ RSS feeds covering the Lebanon-Israel conflict, humanitarian updates, and Middle East breaking news.",
+  applicationCategory: "NewsApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  creator: {
+    "@type": "Organization",
+    name: "LEB Monitor",
+    url: "https://lebmonitor.com",
+  },
+  about: {
+    "@type": "Event",
+    name: "Lebanon-Israel Conflict",
+    location: {
+      "@type": "Place",
+      name: "Lebanon and Israel",
+      geo: {
+        "@type": "GeoShape",
+        box: "33.05 35.1 34.7 36.6",
+      },
+    },
+  },
+};
+
+const newsMediaJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "LEB Monitor",
+  url: "https://lebmonitor.com",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate:
+        "https://lebmonitor.com?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
   },
 };
 
@@ -74,6 +151,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" dir="ltr" className="dark">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(newsMediaJsonLd) }}
+        />
+      </head>
       <body
         className={`${poppins.variable} ${notoArabic.variable} antialiased`}
       >

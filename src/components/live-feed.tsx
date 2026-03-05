@@ -31,6 +31,7 @@ export function LiveFeed() {
   // Filter state
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   // Refs for infinite scroll
@@ -70,9 +71,15 @@ export function LiveFeed() {
       if (prefs.hidden.has(item.source)) return false;
       if (activeCategory !== "all" && item.sourceCategory !== activeCategory) return false;
       if (activeSource && item.source !== activeSource) return false;
+      if (searchQuery) {
+        const lowerQuery = searchQuery.toLowerCase();
+        const matchesSource = item.source.toLowerCase().includes(lowerQuery);
+        const matchesTitle = item.title?.toLowerCase().includes(lowerQuery) ?? false;
+        if (!matchesSource && !matchesTitle) return false;
+      }
       return true;
     });
-  }, [allItems, prefs.hidden, activeCategory, activeSource]);
+  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery]);
 
   // Reset visible count when filters change
   const handleCategoryChange = useCallback((cat: FeedCategory | "all") => {
@@ -231,6 +238,17 @@ export function LiveFeed() {
 
       {/* ── Filter Bar ── */}
       <div className="shrink-0 border-b border-border/40 bg-secondary/10 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        {/* Search bar */}
+        <div className="px-3 sm:px-4 py-2 sm:py-2">
+          <input
+            type="text"
+            placeholder="Search by feed or article title..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-3 py-1.5 rounded-md bg-background border border-border/40 text-sm text-foreground placeholder-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
+          />
+        </div>
+
         {/* Category tabs */}
         <div className="px-3 sm:px-4 py-1.5 sm:py-2 flex items-center gap-1 overflow-x-auto" role="tablist" aria-label="Filter by category">
           <button
@@ -301,7 +319,11 @@ export function LiveFeed() {
           )}
 
           {sourceChips
-            .filter((s) => activeCategory === "all" || s.category === activeCategory)
+            .filter((s) => {
+              const categoryMatch = activeCategory === "all" || s.category === activeCategory;
+              const searchMatch = !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase());
+              return categoryMatch && searchMatch;
+            })
             .map((source) => (
               <button
                 type="button"

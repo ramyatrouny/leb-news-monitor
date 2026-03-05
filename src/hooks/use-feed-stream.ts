@@ -18,7 +18,7 @@ interface FeedState {
 
 /**
  * Streams feeds from /api/feeds via NDJSON.
- * Items appear as each source resolves — no waiting for all 47.
+ * Items appear as each source resolves — no waiting for all sources.
  * On refresh, merges new items into existing list without disrupting the UI.
  * Re-fetches every 30s after the previous fetch completes.
  */
@@ -127,7 +127,7 @@ export function useFeedStream() {
       }, POLL_INTERVAL);
     };
 
-    fetchStream(true).then(schedule);
+    fetchStream(true).finally(schedule);
 
     return () => {
       abortRef.current?.abort();

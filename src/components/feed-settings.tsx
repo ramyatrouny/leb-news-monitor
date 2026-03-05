@@ -10,6 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { FeedPrefs } from "@/hooks/use-feed-prefs";
 import {
   CATEGORY_LABELS,
@@ -55,11 +56,12 @@ export function FeedSettings({
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <button
-          className="relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-2 sm:py-1 rounded text-xs sm:text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground active:text-foreground hover:bg-accent/50 active:bg-accent/50 transition-colors cursor-pointer"
-          title="Manage feeds"
-        >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <SheetTrigger asChild>
+            <button
+              className="relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-2 sm:py-1 rounded text-xs sm:text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground active:text-foreground hover:bg-accent/50 active:bg-accent/50 transition-colors cursor-pointer"
+            >
           <svg
             width="14"
             height="14"
@@ -80,8 +82,11 @@ export function FeedSettings({
               {hiddenCount}
             </span>
           )}
-        </button>
-      </SheetTrigger>
+            </button>
+          </SheetTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Manage feeds</TooltipContent>
+      </Tooltip>
 
       <SheetContent className="w-full sm:w-[320px] bg-background border-border/50 p-0" id={sheetId}>
         <SheetHeader className="px-4 py-3 border-b border-border/40">

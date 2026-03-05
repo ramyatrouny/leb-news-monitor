@@ -13,6 +13,7 @@ import { FeedSettings } from "./feed-settings";
 import { ThemeToggle } from "./theme-toggle";
 import { FontSizeToggle } from "./font-size-toggle";
 import { AnnouncementBanner } from "./announcement-banner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
@@ -162,6 +163,7 @@ export function LiveFeed() {
   const totalItems = allItems.length;
 
   return (
+    <TooltipProvider>
     <div className="h-screen flex flex-col overflow-hidden bg-background">
       {/* ── Top Bar ── */}
       <header className="shrink-0 border-b border-border/50 bg-secondary/20 backdrop-blur-sm pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
@@ -397,5 +399,6 @@ export function LiveFeed() {
         <span>LEB Monitor v1.0</span>
       </footer>
     </div>
+    </TooltipProvider>
   );
 }

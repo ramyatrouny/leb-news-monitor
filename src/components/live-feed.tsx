@@ -10,6 +10,7 @@ import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
 import { useSearch, applySearchFilters } from "@/hooks/use-search";
 import { useDateFilter, applyDateFilter } from "@/hooks/use-date-filter";
+import { useSimilar } from "@/hooks/use-similar";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
@@ -48,6 +49,14 @@ export function LiveFeed() {
     clearDate,
     hasDateFilter,
   } = useDateFilter();
+
+  const {
+    anchorItem,
+    similarItems,
+    isActive: isSimilarMode,
+    showSimilar,
+    clearSimilar,
+  } = useSimilar(allItems);
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
@@ -95,7 +104,9 @@ export function LiveFeed() {
     return applyDateFilter(searched, dateRange);
   }, [allItems, prefs.hidden, activeCategory, activeSource, filters, dateRange]);
 
-  const visibleItems = filteredItems.slice(0, visibleCount);
+  // When "More like this" is active, override with similar items
+  const displayItems = isSimilarMode && similarItems ? similarItems : filteredItems;
+  const visibleItems = displayItems.slice(0, visibleCount);
 
   // Filter handlers
   const handleCategoryChange = useCallback((cat: FeedCategory | "all") => {
@@ -196,6 +207,36 @@ export function LiveFeed() {
         </div>
       </div>
 
+      {/* "More like this" banner */}
+      {isSimilarMode && anchorItem && (
+        <div className="shrink-0 border-b border-primary/20 bg-primary/5 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+          <div className="px-3 sm:px-4 py-2 flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary shrink-0">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+              <path d="M8 11h6" />
+              <path d="M11 8v6" />
+            </svg>
+            <span className="text-xs sm:text-[11px] text-foreground/80 truncate">
+              Similar to: <strong className="font-semibold">{anchorItem.title}</strong>
+            </span>
+            <span className="text-[10px] text-muted-foreground/60 shrink-0">
+              {similarItems?.length ?? 0} result{similarItems?.length !== 1 ? "s" : ""}
+            </span>
+            <button
+              onClick={clearSimilar}
+              className="ml-auto shrink-0 p-1 rounded hover:bg-accent/50 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              title="Exit similar mode"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <FeedFilterBar
         activeCategory={activeCategory}
         activeSource={activeSource}
@@ -209,13 +250,14 @@ export function LiveFeed() {
       <FeedContent
         items={visibleItems}
         newIds={newIds}
-        filteredCount={filteredItems.length}
+        filteredCount={displayItems.length}
         visibleCount={visibleCount}
         layout={layout}
         isLoading={isLoading}
         hasData={grouped.size > 0}
         onLoadMore={handleLoadMore}
         highlightQuery={filters.query.trim()}
+        onSimilar={showSimilar}
       />
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">

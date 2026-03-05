@@ -14,6 +14,8 @@ interface FeedContentProps {
   isLoading: boolean;
   hasData: boolean;
   onLoadMore: () => void;
+  highlightQuery?: string;
+  onSimilar?: (item: FeedItem) => void;
 }
 
 export function FeedContent({
@@ -25,6 +27,8 @@ export function FeedContent({
   isLoading,
   hasData,
   onLoadMore,
+  highlightQuery,
+  onSimilar,
 }: FeedContentProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevObserverRef = useRef<IntersectionObserver | null>(null);
@@ -65,7 +69,7 @@ export function FeedContent({
         {!isLoading && items.length > 0 && (
           <div key={layout} className={`layout-enter ${layoutClass}`}>
             {items.map((item) => (
-              <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} />
+              <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} highlightQuery={highlightQuery} onSimilar={onSimilar} />
             ))}
           </div>
         )}

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins, Noto_Sans_Arabic } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -165,6 +166,7 @@ export default function RootLayout({
         className={`${poppins.variable} ${notoArabic.variable} antialiased`}
       >
         {children}
+        <SpeedInsights />
         <GoogleAnalytics gaId="G-R2L7NG8ET3" />
       </body>
     </html>

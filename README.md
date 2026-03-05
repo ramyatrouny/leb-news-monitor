@@ -41,7 +41,7 @@ No API keys. No database. No authentication. Just public RSS feeds, parsed serve
 
 ⚙️ **Source Management** — Toggle, reorder, and hide individual feeds via a settings panel; preferences persist in localStorage
 
-🎨 **Dark Mode by Default** — Perceptually uniform OKLCh color system with custom scrollbars and entrance animations
+🎨 **Light & Dark Mode** — Switchable theme with OKLCh color system, system preference detection, and custom scrollbars
 
 📱 **Fully Responsive** — 1 / 2 / 3 column card grid across mobile, tablet, and desktop
 
@@ -524,7 +524,7 @@ Planned features and improvements — contributions welcome on any of these:
 - [ ] **Feed health dashboard** — Admin view showing uptime, latency, and error rates per source
 
 ### UI / UX
-- [ ] **Light mode toggle** — User-switchable light/dark theme (currently dark-only)
+- [x] **Light mode toggle** — User-switchable light/dark theme with system preference detection and localStorage persistence
 - [ ] **Map view** — Plot geotagged articles on an interactive map of the region
 - [ ] **Multi-column layout customization** — Let users choose grid density (compact / comfortable / spacious)
 - [ ] **Reading mode** — Inline article preview without leaving the app

@@ -12,11 +12,13 @@ import { FeedCard, FeedCardSkeleton } from "./feed-card";
 import { FeedSettings } from "./feed-settings";
 import { ThemeToggle } from "./theme-toggle";
 import { FontSizeToggle } from "./font-size-toggle";
+import { LayoutToggle } from "./layout-toggle";
 import { AnnouncementBanner } from "./announcement-banner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
+import { useLayout } from "@/hooks/use-layout";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -30,6 +32,7 @@ export function LiveFeed() {
   const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming } = useFeedStream();
 
   const { prefs, toggleSource, syncSources } = useFeedPrefs();
+  const { layout } = useLayout();
 
   // Filter state
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
@@ -221,6 +224,7 @@ export function LiveFeed() {
               {totalItems}
             </span>
 
+            <LayoutToggle />
             <FontSizeToggle />
             <ThemeToggle />
             <FeedSettings
@@ -336,7 +340,7 @@ export function LiveFeed() {
       <main ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain">
         <div className="p-2.5 sm:p-4">
           {isLoading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
+            <div key={layout} className={`layout-enter ${layout === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3" : "flex flex-col gap-2 sm:gap-3 max-w-3xl mx-auto"}`}>
               {Array.from({ length: 12 }).map((_, i) => (
                 <FeedCardSkeleton key={i} />
               ))}
@@ -344,7 +348,7 @@ export function LiveFeed() {
           )}
 
           {!isLoading && visibleItems.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
+            <div key={layout} className={`layout-enter ${layout === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3" : "flex flex-col gap-2 sm:gap-3 max-w-3xl mx-auto"}`}>
               {visibleItems.map((item) => (
                 <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} />
               ))}

@@ -37,6 +37,8 @@ export default function ChangelogPage() {
           <Link
             href="/"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            title="Return to Live Feed"
+            aria-label="Back to LEB Monitor Live Feed"
           >
             &larr; Back to Live Feed
           </Link>

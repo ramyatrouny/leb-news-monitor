@@ -43,6 +43,8 @@ export function AnnouncementBanner() {
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
+              title="Visit LEB Monitor official website"
+              aria-label="Visit LEB Monitor official website at lebmonitor.com"
             >
               lebmonitor.com
             </a>
@@ -55,6 +57,8 @@ export function AnnouncementBanner() {
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-primary underline underline-offset-2"
+              title="Visit LEB Monitor official website"
+              aria-label="Visit LEB Monitor at lebmonitor.com"
             >
               lebmonitor.com
             </a>

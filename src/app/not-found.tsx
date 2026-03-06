@@ -17,6 +17,8 @@ export default function NotFound() {
       <Link
         href="/"
         className="mt-4 rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        title="Go to LEB Monitor home page"
+        aria-label="Return to LEB Monitor Live Feed"
       >
         Back to Live Feed
       </Link>

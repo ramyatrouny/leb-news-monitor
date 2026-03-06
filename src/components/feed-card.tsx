@@ -62,8 +62,10 @@ export const FeedCard = memo(function FeedCard({
     <a
       href={item.link}
       target="_blank"
-      rel="noopener noreferrer"
-      className={`block group ${isNew ? "card-enter" : ""}`}
+      rel="noopener noreferrer ugc"
+      className={`block group${isNew ? " card-enter" : ""}`}
+      title={`Read: ${item.title} - from ${item.source}`}
+      aria-label={`Read full article: ${item.title} on ${item.source}`}
     >
       <article className="relative h-full rounded-lg border border-border/40 bg-card/50 active:bg-accent/50 hover:bg-accent/40 hover:border-border/60 transition-colors duration-150 overflow-hidden">
         {/* Accent bar (left edge) */}
@@ -119,7 +121,7 @@ export const FeedCard = memo(function FeedCard({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.image}
-                  alt=""
+                  alt={item.title}
                   loading="lazy"
                   className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                   onError={() => setImgError(true)}

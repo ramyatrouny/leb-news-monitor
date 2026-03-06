@@ -161,7 +161,7 @@ export function LiveFeed() {
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">
         <span>Auto-refresh 30s</span>
-        <Link href="/changelog" className="hover:text-muted-foreground transition-colors">Changelog</Link>
+        <Link href="/changelog" className="hover:text-muted-foreground transition-colors" title="View changelog" aria-label="View LEB Monitor changelog and updates">Changelog</Link>
         <span>LEB Monitor v1.0</span>
       </footer>
     </div>

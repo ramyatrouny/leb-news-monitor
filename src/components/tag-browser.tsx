@@ -57,11 +57,23 @@ function ChevronIcon({ up, className }: { up?: boolean; className?: string }) {
   );
 }
 
+function TopicIcon({ className }: { className?: string }) {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="4" x2="20" y1="9" y2="9" />
+      <line x1="4" x2="20" y1="15" y2="15" />
+      <line x1="10" x2="8" y1="3" y2="21" />
+      <line x1="16" x2="14" y1="3" y2="21" />
+    </svg>
+  );
+}
+
 function TypeBadgeIcon({ type }: { type: EntityType }) {
   switch (type) {
     case "person": return <PersonIcon />;
     case "place": return <PlaceIcon />;
     case "org": return <OrgIcon />;
+    case "topic": return <TopicIcon />;
   }
 }
 
@@ -69,18 +81,21 @@ const TYPE_COLORS: Record<EntityType, string> = {
   person: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20",
   place: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
   org: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  topic: "bg-violet-500/15 text-violet-600 dark:text-violet-400 border-violet-500/20",
 };
 
 const TYPE_ACTIVE_COLORS: Record<EntityType, string> = {
   person: "bg-blue-500/30 text-blue-700 dark:text-blue-300 border-blue-500/40 ring-1 ring-blue-500/30",
   place: "bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 ring-1 ring-emerald-500/30",
   org: "bg-amber-500/30 text-amber-700 dark:text-amber-300 border-amber-500/40 ring-1 ring-amber-500/30",
+  topic: "bg-violet-500/30 text-violet-700 dark:text-violet-300 border-violet-500/40 ring-1 ring-violet-500/30",
 };
 
 const TYPE_LABELS: Record<EntityType, string> = {
   person: "People",
   place: "Places",
   org: "Organizations",
+  topic: "Topics",
 };
 
 /* ── Props ────────────────────────────────────────────────────── */
@@ -112,7 +127,7 @@ export function TagBrowser({
   const displayTags = showAll ? filteredTags : filteredTags.slice(0, 30);
 
   const typeCounts = useMemo(() => {
-    const counts: Record<EntityType, number> = { person: 0, place: 0, org: 0 };
+    const counts: Record<EntityType, number> = { person: 0, place: 0, org: 0, topic: 0 };
     for (const t of allTags) counts[t.type]++;
     return counts;
   }, [allTags]);
@@ -143,7 +158,7 @@ export function TagBrowser({
 
       {/* Dropdown panel */}
       {isOpen && (
-        <div className="absolute top-full mt-1 right-0 z-50 w-[340px] sm:w-[380px] max-h-[70vh] overflow-hidden rounded-lg border border-border/60 bg-popover shadow-lg flex flex-col">
+        <div className="absolute top-full mt-1 right-0 z-50 w-[340px] sm:w-[420px] max-h-[70vh] overflow-hidden rounded-lg border border-border/60 bg-popover shadow-lg flex flex-col">
           {/* Header */}
           <div className="px-3 py-2 border-b border-border/40 flex items-center justify-between">
             <span className="text-xs font-medium text-foreground/80">
@@ -161,10 +176,10 @@ export function TagBrowser({
           </div>
 
           {/* Type filter tabs */}
-          <div className="px-3 py-1.5 border-b border-border/30 flex items-center gap-1">
+          <div className="px-3 py-1.5 border-b border-border/30 flex items-center gap-1 overflow-x-auto scrollbar-none">
             <button
               onClick={() => setTypeFilter("all")}
-              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
                 typeFilter === "all"
                   ? "bg-accent text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -172,11 +187,11 @@ export function TagBrowser({
             >
               All
             </button>
-            {(["person", "place", "org"] as EntityType[]).map((type) => (
+            {(["person", "place", "org", "topic"] as EntityType[]).map((type) => (
               <button
                 key={type}
                 onClick={() => setTypeFilter(type)}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                className={`shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition-colors cursor-pointer ${
                   typeFilter === type
                     ? "bg-accent text-foreground"
                     : "text-muted-foreground hover:text-foreground"

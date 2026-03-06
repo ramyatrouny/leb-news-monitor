@@ -5,7 +5,7 @@ import type { FeedItem } from "@/app/api/feeds/route";
 /* ══════════════════════════════════════════════════════════════════
  *  Entity types
  * ══════════════════════════════════════════════════════════════════ */
-export type EntityType = "person" | "place" | "org";
+export type EntityType = "person" | "place" | "org" | "topic";
 
 export interface Entity {
   name: string;        // canonical display name
@@ -208,7 +208,76 @@ function escapeRegex(s: string): string {
 }
 
 /* ══════════════════════════════════════════════════════════════════
- *  Tag articles — returns a Map<articleId, Set<canonicalTag>>
+ *  Dynamic extraction — stop words & tokeniser
+ * ══════════════════════════════════════════════════════════════════ */
+const DYNAMIC_STOP = new Set([
+  // English
+  "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+  "of", "with", "by", "from", "is", "are", "was", "were", "be", "been",
+  "has", "have", "had", "do", "does", "did", "will", "would", "could",
+  "should", "may", "might", "shall", "can", "not", "no", "so", "if",
+  "as", "it", "its", "that", "this", "these", "those", "he", "she",
+  "they", "we", "you", "my", "his", "her", "our", "your", "their",
+  "me", "him", "us", "them", "who", "what", "when", "where", "how",
+  "which", "than", "more", "also", "up", "out", "about", "into", "over",
+  "after", "before", "between", "during", "just", "new", "said", "says",
+  "all", "some", "any", "being", "very", "most", "only", "own", "same",
+  "such", "other", "each", "every", "both", "few", "much", "many",
+  "too", "then", "now", "here", "there", "still", "even", "first",
+  "last", "long", "great", "way", "one", "two", "three", "four", "five",
+  "six", "old", "like", "back", "well", "get", "got", "set", "make",
+  "made", "take", "come", "came", "go", "went", "going", "part", "while",
+  "per", "via", "read", "update", "news", "report", "reports", "source",
+  "sources", "according", "say", "told", "tell", "year", "years", "day",
+  "days", "time", "week", "month", "ago", "today", "yesterday", "latest",
+  "breaking", "people", "official", "officials", "state", "government",
+  "country", "world", "international", "national", "local", "region",
+  "area", "city", "group", "number", "case", "point", "end", "system",
+  "program", "company", "follow", "show", "call", "called", "under",
+  "through", "against", "around", "among", "several", "ten", "seven",
+  "eight", "nine", "until", "since", "above", "below", "full", "life",
+  "down", "side", "another", "found", "work", "place", "right", "left",
+  "high", "large", "small", "including", "early", "near", "late",
+  "war", "attack", "killed", "dead", "death", "help", "use", "used",
+  // Arabic filler
+  "في", "من", "على", "إلى", "عن", "مع", "هذا", "هذه", "التي", "الذي",
+  "أن", "إن", "كان", "قد", "لا", "ما", "هو", "هي", "ذلك", "بين",
+  "كل", "بعد", "قبل", "حتى", "ثم", "أو", "بل", "لكن", "عند",
+  "عبر", "خلال", "منذ", "تم", "يتم", "كما", "لم", "لن", "سوف",
+  "نحو", "ضد", "حول", "دون", "فوق", "تحت", "وفق", "أكثر", "أقل",
+  "عدد", "بعض", "أحد", "أي", "غير", "حيث", "إذا", "أما", "مثل",
+  "يوم", "أمس", "اليوم",
+]);
+
+/** Build a set of all known aliases (lowercase) for dedup */
+const KNOWN_ALIAS_SET = new Set(
+  ENTITIES.flatMap((e) => e.aliases.map((a) => a.toLowerCase())),
+);
+const KNOWN_NAME_SET = new Set(
+  ENTITIES.map((e) => e.name.toLowerCase()),
+);
+
+const ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
+/** Tokenise text for dynamic tagging */
+function tokenizeForTags(text: string): string[] {
+  return text
+    .replace(/https?:\/\/\S+/g, "")
+    .replace(/[^\p{L}\p{N}\s'-]/gu, " ")
+    .split(/\s+/)
+    .map((w) => w.replace(/^['-]+|['-]+$/g, ""))
+    .filter((w) => w.length > 2 && !DYNAMIC_STOP.has(w.toLowerCase()));
+}
+
+/** Choose display name: capitalise first letter for Latin, keep as-is for Arabic */
+function displayName(word: string): string {
+  if (ARABIC_RE.test(word)) return word;
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+ *  Tag articles — dictionary + dynamic content extraction
+ *  Returns Map<articleId, Set<canonicalTag>> and a global tag index
  * ══════════════════════════════════════════════════════════════════ */
 export function tagArticles(
   items: FeedItem[],
@@ -216,6 +285,7 @@ export function tagArticles(
   const tagMap = new Map<string, Set<string>>();   // itemId → tags
   const counters = new Map<string, { type: EntityType; count: number }>();
 
+  /* ── Phase 1: Dictionary-based entity extraction ────────────── */
   for (const item of items) {
     const text = `${item.title} ${item.snippet}`;
     const entities = extractEntities(text);
@@ -235,7 +305,110 @@ export function tagArticles(
     }
   }
 
-  // Build sorted tag index
+  /* ── Phase 2: Dynamic content-based topic extraction ────────── */
+  if (items.length === 0) {
+    return { tagMap, tagIndex: new Map<string, TagInfo>() };
+  }
+
+  // 2a: Count per-word document frequency across all articles
+  const wordDocs = new Map<string, { display: string; articles: Set<string> }>();
+
+  for (const item of items) {
+    const text = `${item.title} ${item.snippet}`;
+    const tokens = tokenizeForTags(text);
+    const seen = new Set<string>();
+
+    for (const tok of tokens) {
+      const key = tok.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const entry = wordDocs.get(key);
+      if (entry) {
+        entry.articles.add(item.id);
+      } else {
+        wordDocs.set(key, { display: tok, articles: new Set([item.id]) });
+      }
+    }
+  }
+
+  // 2b: Filter to significant terms
+  //     - appears in ≥ 2 articles
+  //     - doesn't appear in > 40% of articles (too generic)
+  //     - not already a known dictionary alias/name
+  const maxDocs = Math.max(3, Math.floor(items.length * 0.4));
+  const dynamicCandidates: { display: string; key: string; count: number; score: number }[] = [];
+
+  for (const [key, { display, articles }] of wordDocs) {
+    if (articles.size < 2 || articles.size > maxDocs) continue;
+    if (KNOWN_ALIAS_SET.has(key) || KNOWN_NAME_SET.has(key)) continue;
+
+    // IDF-weighted score: prefers terms that are distinctive but not too rare
+    const idf = Math.log(items.length / articles.size);
+    dynamicCandidates.push({
+      display: displayName(display),
+      key,
+      count: articles.size,
+      score: articles.size * idf,
+    });
+  }
+
+  // Sort by score, keep top 50 so the tag browser stays usable
+  dynamicCandidates.sort((a, b) => b.score - a.score);
+  const topDynamic = dynamicCandidates.slice(0, 50);
+
+  // 2c: Register dynamic tags and assign to articles
+  for (const { display, key, count } of topDynamic) {
+    if (counters.has(display)) continue;
+    counters.set(display, { type: "topic", count });
+
+    const docs = wordDocs.get(key)!;
+    for (const articleId of docs.articles) {
+      const tags = tagMap.get(articleId) || new Set<string>();
+      tags.add(display);
+      tagMap.set(articleId, tags);
+    }
+  }
+
+  /* ── Phase 3: Fallback — give untagged articles their top terms ─ */
+  for (const item of items) {
+    const existing = tagMap.get(item.id);
+    if (existing && existing.size > 0) continue;
+
+    const text = `${item.title} ${item.snippet}`;
+    const tokens = tokenizeForTags(text);
+    const seen = new Set<string>();
+    const scored: { term: string; score: number }[] = [];
+
+    for (const tok of tokens) {
+      const key = tok.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (KNOWN_ALIAS_SET.has(key)) continue;
+
+      const docs = wordDocs.get(key);
+      if (!docs) continue;
+
+      const idf = Math.log(items.length / docs.articles.size);
+      scored.push({ term: displayName(tok), score: idf });
+    }
+
+    scored.sort((a, b) => b.score - a.score);
+    const top = scored.slice(0, 3);
+
+    if (top.length > 0) {
+      const tags = new Set<string>();
+      for (const { term } of top) {
+        tags.add(term);
+        const c = counters.get(term);
+        if (c) c.count++;
+        else counters.set(term, { type: "topic", count: 1 });
+      }
+      tagMap.set(item.id, tags);
+    }
+  }
+
+  /* ── Build tag index ────────────────────────────────────────── */
   const tagIndex = new Map<string, TagInfo>();
   for (const [tag, { type, count }] of counters) {
     tagIndex.set(tag, { tag, type, count });

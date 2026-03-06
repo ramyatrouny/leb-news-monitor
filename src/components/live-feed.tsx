@@ -12,6 +12,7 @@ import { useSearch, applySearchFilters } from "@/hooks/use-search";
 import { useDateFilter, applyDateFilter } from "@/hooks/use-date-filter";
 import { useSimilar } from "@/hooks/use-similar";
 import { useTags } from "@/hooks/use-tags";
+import { useTrending } from "@/hooks/use-trending";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
@@ -19,6 +20,7 @@ import { FeedContent } from "./feed-content";
 import { SearchBar } from "./search-bar";
 import { DatePickerFilter } from "./date-picker-filter";
 import { TagBrowser } from "./tag-browser";
+import { TrendingBar } from "./trending-bar";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -69,6 +71,15 @@ export function LiveFeed() {
     getItemTags,
     hasActiveTags: hasActiveTagFilters,
   } = useTags(allItems);
+
+  const { keywords: trendingKeywords } = useTrending(allItems);
+
+  // Handler: clicking a trending keyword populates the search
+  const handleTrendingClick = useCallback((word: string) => {
+    setQuery(word);
+    commitSearch(word);
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [setQuery, commitSearch]);
 
   // Build tagIndex map for article cards
   const tagIndex = useMemo(() => {
@@ -236,6 +247,15 @@ export function LiveFeed() {
           />
         </div>
       </div>
+
+      {/* Trending keywords bar */}
+      {trendingKeywords.length > 0 && (
+        <div className="shrink-0 border-b border-border/30 bg-secondary/5 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+          <div className="px-3 sm:px-4 py-1.5">
+            <TrendingBar keywords={trendingKeywords} onKeywordClick={handleTrendingClick} />
+          </div>
+        </div>
+      )}
 
       {/* "More like this" banner */}
       {isSimilarMode && anchorItem && (

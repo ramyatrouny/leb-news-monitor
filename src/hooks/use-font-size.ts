@@ -17,17 +17,17 @@ function getServerSnapshot(): FontSize {
   return "medium";
 }
 
-let listeners: Array<() => void> = [];
+const listeners = new Set<() => void>();
 
 function subscribe(cb: () => void) {
-  listeners.push(cb);
+  listeners.add(cb);
   return () => {
-    listeners = listeners.filter((l) => l !== cb);
+    listeners.delete(cb);
   };
 }
 
 function emitChange() {
-  for (const l of listeners) l();
+  listeners.forEach((l) => l());
 }
 
 function applyFontSize(size: FontSize) {

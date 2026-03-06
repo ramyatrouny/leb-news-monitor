@@ -12,12 +12,12 @@ function getServerSnapshot(): boolean {
   return true; // hidden on server to avoid flash
 }
 
-let listeners: Array<() => void> = [];
+const listeners = new Set<() => void>();
 
 function subscribe(cb: () => void) {
-  listeners.push(cb);
+  listeners.add(cb);
   return () => {
-    listeners = listeners.filter((l) => l !== cb);
+    listeners.delete(cb);
   };
 }
 
@@ -26,7 +26,7 @@ export function AnnouncementBanner() {
 
   const dismiss = useCallback(() => {
     localStorage.setItem(DISMISSED_KEY, "1");
-    for (const l of listeners) l();
+    listeners.forEach((l) => l());
   }, []);
 
   if (isDismissed) return null;

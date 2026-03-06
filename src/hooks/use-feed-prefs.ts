@@ -54,18 +54,18 @@ function getServerSnapshot(): FeedPrefs {
   return DEFAULT_PREFS;
 }
 
-let listeners: Array<() => void> = [];
+const listeners = new Set<() => void>();
 
 function subscribe(cb: () => void) {
-  listeners.push(cb);
+  listeners.add(cb);
   return () => {
-    listeners = listeners.filter((l) => l !== cb);
+    listeners.delete(cb);
   };
 }
 
 function emitChange() {
   cachedSnapshot = loadPrefs();
-  for (const l of listeners) l();
+  listeners.forEach((l) => l());
 }
 
 export function useFeedPrefs() {

@@ -166,8 +166,17 @@ function mergeItems(
   if (newItems.length === 0) return { merged: existing, addedIds };
 
   const merged = [...existing, ...newItems];
+  
+  // Cache timestamps to avoid creating Date objects during sort
+  const timestamps = new Map<string, number>();
+  for (const item of merged) {
+    if (!timestamps.has(item.id)) {
+      timestamps.set(item.id, new Date(item.pubDate).getTime());
+    }
+  }
+  
   merged.sort(
-    (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
+    (a, b) => (timestamps.get(b.id) ?? 0) - (timestamps.get(a.id) ?? 0)
   );
   return { merged, addedIds };
 }

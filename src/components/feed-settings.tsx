@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -35,9 +35,11 @@ export function FeedSettings({
   prefs: FeedPrefs;
   onToggle: (source: string) => void;
 }) {
+  const [searchQuery, setSearchQuery] = useState("");
+
   const byCategory = CATEGORY_ORDER.map((cat) => {
     const catSources = sources
-      .filter((s) => s.category === cat)
+      .filter((s) => s.category === cat && (!searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase())))
       .sort((a, b) => {
         const ai = prefs.order.indexOf(a.name);
         const bi = prefs.order.indexOf(b.name);
@@ -99,6 +101,28 @@ export function FeedSettings({
               : `All ${totalCount} sources active`}
           </SheetDescription>
         </SheetHeader>
+
+        {/* Search bar */}
+        <div className="px-4 py-3 border-b border-border/40 bg-secondary/5">
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search sources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 rounded-md bg-background border border-border/60 text-xs sm:text-[10px] text-foreground placeholder-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition-all hover:border-border/80"
+            />
+          </div>
+        </div>
 
         <div className="overflow-y-auto flex-1 overscroll-contain pb-[env(safe-area-inset-bottom)]">
           {byCategory.map(({ category, sources: catSources }) => {

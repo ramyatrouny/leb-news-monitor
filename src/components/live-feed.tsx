@@ -28,6 +28,7 @@ export function LiveFeed() {
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   // Group items by source
@@ -63,9 +64,15 @@ export function LiveFeed() {
       if (prefs.hidden.has(item.source)) return false;
       if (activeCategory !== "all" && item.sourceCategory !== activeCategory) return false;
       if (activeSource && item.source !== activeSource) return false;
+      if (searchQuery) {
+        const lowerQuery = searchQuery.toLowerCase();
+        const matchesSource = item.source.toLowerCase().includes(lowerQuery);
+        const matchesTitle = item.title?.toLowerCase().includes(lowerQuery) ?? false;
+        if (!matchesSource && !matchesTitle) return false;
+      }
       return true;
     });
-  }, [allItems, prefs.hidden, activeCategory, activeSource]);
+  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery]);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
 
@@ -146,6 +153,8 @@ export function LiveFeed() {
         filteredCount={filteredItems.length}
         onCategoryChange={handleCategoryChange}
         onSourceChange={handleSourceChange}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
 
       <FeedContent

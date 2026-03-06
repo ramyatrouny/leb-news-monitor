@@ -8,6 +8,9 @@ import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
+import { useBookmarks } from "@/hooks/use-bookmarks";
+import { useReadingList } from "@/hooks/use-reading-list";
+import type { FeedCardContextValue } from "./feed-card-context";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
@@ -25,11 +28,14 @@ export function LiveFeed() {
   const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming } = useFeedStream();
   const { prefs, toggleSource, syncSources } = useFeedPrefs();
   const { layout } = useLayout();
+  const { isBookmarked, toggleBookmark, bookmarkCount } = useBookmarks();
+  const { isInReadingList, toggleReadingList, readingListCount } = useReadingList();
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [wordCountOverrides, setWordCountOverrides] = useState(() => new Map<string, number>());
 
   // Group items by source
   const grouped = useMemo(() => {
@@ -129,6 +135,36 @@ export function LiveFeed() {
     return counts;
   }, [allItems, prefs.hidden]);
 
+  // Article word-count override handler
+  const handleArticleLoaded = useCallback((url: string, wordCount: number) => {
+    setWordCountOverrides((prev) => {
+      if (prev.get(url) === wordCount) return prev;
+      const next = new Map(prev);
+      next.set(url, wordCount);
+      return next;
+    });
+  }, []);
+
+  // Build card context to avoid prop drilling
+  const emptyTags = useCallback(() => [] as string[], []);
+  const noop = useCallback(() => {}, []);
+
+  const cardContext = useMemo<FeedCardContextValue>(
+    () => ({
+      highlightQuery: searchQuery,
+      getItemTags: emptyTags,
+      tagIndex: new Map(),
+      onTagClick: noop,
+      isBookmarked,
+      toggleBookmark,
+      isInReadingList,
+      toggleReadingList,
+      wordCountOverrides,
+      onArticleLoaded: handleArticleLoaded,
+    }),
+    [searchQuery, emptyTags, noop, isBookmarked, toggleBookmark, isInReadingList, toggleReadingList, wordCountOverrides, handleArticleLoaded],
+  );
+
   return (
     <TooltipProvider>
     <div className="h-screen flex flex-col overflow-hidden bg-background">
@@ -141,6 +177,8 @@ export function LiveFeed() {
         sources={allSourceInfo}
         prefs={prefs}
         onToggleSource={toggleSource}
+        bookmarkCount={bookmarkCount}
+        readingListCount={readingListCount}
       />
 
       <AnnouncementBanner />
@@ -166,11 +204,26 @@ export function LiveFeed() {
         isLoading={isLoading}
         hasData={grouped.size > 0}
         onLoadMore={handleLoadMore}
+        cardContext={cardContext}
       />
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">
         <span>Auto-refresh 30s</span>
-        <Link href="/changelog" className="hover:text-muted-foreground transition-colors" title="View changelog" aria-label="View LEB Monitor changelog and updates">Changelog</Link>
+        <div className="flex items-center gap-3">
+          {bookmarkCount > 0 && (
+            <Link href="/reading-list" className="hover:text-muted-foreground transition-colors flex items-center gap-1" title="View bookmarks">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              {bookmarkCount}
+            </Link>
+          )}
+          {readingListCount > 0 && (
+            <Link href="/reading-list" className="hover:text-muted-foreground transition-colors flex items-center gap-1" title="View reading list">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+              {readingListCount}
+            </Link>
+          )}
+          <Link href="/changelog" className="hover:text-muted-foreground transition-colors" title="View changelog" aria-label="View LEB Monitor changelog and updates">Changelog</Link>
+        </div>
         <span>LEB Monitor v1.0</span>
       </footer>
     </div>

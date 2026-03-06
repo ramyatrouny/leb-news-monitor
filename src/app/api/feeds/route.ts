@@ -1,5 +1,7 @@
 import Parser from "rss-parser";
 import { RSS_FEEDS, type FeedCategory } from "@/config/feeds";
+import { setCachedArticle, getCachedArticle, getCachedTier } from "@/lib/article-cache";
+import type { ArticleResult } from "@/app/api/article/route";
 
 export interface FeedItem {
   id: string;
@@ -11,6 +13,8 @@ export interface FeedItem {
   sourceColor?: string;
   sourceCategory: FeedCategory;
   image?: string;
+  /** Word count of the full article content from the RSS source */
+  wordCount: number;
 }
 
 /** Each NDJSON line is one of these message types */
@@ -160,22 +164,67 @@ interface ParsedItem extends CustomItem {
   pubDate?: string;
 }
 
+function countWords(text: string | undefined): number {
+  if (!text) return 0;
+  const plain = text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (!plain) return 0;
+  return plain.split(/\s+/).filter(Boolean).length;
+}
+
+/**
+ * Strip HTML tags and return plain text.
+ */
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function parseFeedItems(feed: (typeof RSS_FEEDS)[number], parsed: { items?: ParsedItem[] }): FeedItem[] {
   return (parsed.items ?? []).map(
-    (item): FeedItem => ({
-      id: `${feed.name}-${item.link ?? item.guid ?? item.title}`,
-      title: item.title ?? "Untitled",
-      link: item.link ?? "#",
-      snippet:
+    (item): FeedItem => {
+      const fullText = item.content ?? item.contentSnippet ?? "";
+      const snippetText =
         item.contentSnippet?.slice(0, 200) ??
         item.content?.replace(/<[^>]*>/g, "").slice(0, 200) ??
-        "",
-      pubDate: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
-      source: feed.name,
-      sourceColor: feed.color,
-      sourceCategory: feed.category,
-      image: extractImage(item),
-    })
+        "";
+      const titleText = item.title ?? "Untitled";
+      const link = item.link ?? "#";
+      const wc = countWords(fullText) || countWords(titleText);
+
+      // Pre-populate article cache with RSS content so reading mode
+      // can render instantly without a separate fetch.
+      if (fullText && link !== "#" && wc > 30) {
+        const textContent = stripHtml(fullText);
+        const rssArticle: ArticleResult = {
+          title: titleText,
+          content: fullText,
+          textContent,
+          excerpt: textContent.slice(0, 200),
+          siteName: feed.name,
+          wordCount: wc,
+          byline: null,
+        };
+        setCachedArticle(link, rssArticle, "rss");
+      }
+
+      // Use full-tier cached word count if available (from previous
+      // reading-mode extractions), otherwise fall back to RSS word count.
+      const cachedTier = link !== "#" ? getCachedTier(link) : null;
+      const fullWordCount =
+        cachedTier === "full" ? getCachedArticle(link)?.wordCount : undefined;
+
+      return {
+        id: `${feed.name}-${item.link ?? item.guid ?? item.title}`,
+        title: titleText,
+        link,
+        snippet: snippetText,
+        pubDate: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
+        source: feed.name,
+        sourceColor: feed.color,
+        sourceCategory: feed.category,
+        image: extractImage(item),
+        wordCount: fullWordCount ?? wc,
+      };
+    }
   );
 }
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useMemo } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
 import type { FeedLayout } from "@/hooks/use-layout";
 import { FeedCard, FeedCardSkeleton } from "./feed-card";
+import { FeedCardProvider, type FeedCardContextValue } from "./feed-card-context";
 
 interface FeedContentProps {
   items: FeedItem[];
@@ -14,6 +15,8 @@ interface FeedContentProps {
   isLoading: boolean;
   hasData: boolean;
   onLoadMore: () => void;
+  /** Context values for card actions (bookmarks, reading list, etc.) */
+  cardContext: FeedCardContextValue;
 }
 
 export function FeedContent({
@@ -25,6 +28,7 @@ export function FeedContent({
   isLoading,
   hasData,
   onLoadMore,
+  cardContext,
 }: FeedContentProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevObserverRef = useRef<IntersectionObserver | null>(null);
@@ -69,11 +73,13 @@ export function FeedContent({
         )}
 
         {!isLoading && items.length > 0 && (
-          <div key={layout} className={`layout-enter ${layoutClass}`}>
-            {items.map((item) => (
-              <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} />
-            ))}
-          </div>
+          <FeedCardProvider value={cardContext}>
+            <div key={layout} className={`layout-enter ${layoutClass}`}>
+              {items.map((item) => (
+                <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} />
+              ))}
+            </div>
+          </FeedCardProvider>
         )}
 
         {hasMore && (

@@ -57,7 +57,7 @@ interface SearchBarProps {
   hasActiveFilters: boolean;
   recentSearches: string[];
   onRemoveRecent: (term: string) => void;
-  onClearRecent: () => void;
+  onClearRecent: () => void; 
   sourceNames: string[];
   /** Slot for the date picker rendered next to the Filters button */
   datePicker?: ReactNode;

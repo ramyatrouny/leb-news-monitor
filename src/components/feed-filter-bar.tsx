@@ -22,6 +22,8 @@ interface FeedFilterBarProps {
   filteredCount: number;
   onCategoryChange: (cat: FeedCategory | "all") => void;
   onSourceChange: (source: string | null) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 export function FeedFilterBar({
@@ -32,9 +34,38 @@ export function FeedFilterBar({
   filteredCount,
   onCategoryChange,
   onSourceChange,
+  searchQuery,
+  onSearchChange,
 }: FeedFilterBarProps) {
+  const filteredSourceChips = sourceChips.filter((s) => {
+    const categoryMatch = activeCategory === "all" || s.category === activeCategory;
+    const searchMatch = !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return categoryMatch && searchMatch;
+  });
+
   return (
     <div className="shrink-0 border-b border-border/40 bg-secondary/10 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+      {/* Search bar */}
+      <div className="px-3 sm:px-4 py-3 sm:py-3">
+        <div className="relative">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 pointer-events-none"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by feed or article title..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-background border border-border/60 text-sm text-foreground placeholder-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition-all hover:border-border/80"
+          />
+        </div>
+      </div>
       {/* Category tabs */}
       <div className="px-3 sm:px-4 py-1.5 sm:py-2 flex items-center gap-1 overflow-x-auto" role="tablist" aria-label="Filter by category">
         <button
@@ -103,8 +134,7 @@ export function FeedFilterBar({
           </button>
         )}
 
-        {sourceChips
-          .filter((s) => activeCategory === "all" || s.category === activeCategory)
+        {filteredSourceChips
           .map((source) => (
             <button
               type="button"

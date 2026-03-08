@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
+import { useBookmarks } from "@/hooks/use-bookmarks";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
@@ -25,6 +26,7 @@ export function LiveFeed() {
   const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming } = useFeedStream();
   const { prefs, toggleSource, syncSources } = useFeedPrefs();
   const { layout } = useLayout();
+  const { toggle: toggleBookmark, isBookmarked, count: bookmarkCount } = useBookmarks();
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export function LiveFeed() {
   // Filtered items
   const filteredItems = useMemo(() => {
     if (!allItems.length) return [];
-    return allItems.filter((item) => {
+    const items = allItems.filter((item) => {
       if (prefs.hidden.has(item.source)) return false;
       if (activeCategory !== "all" && item.sourceCategory !== activeCategory) return false;
       if (activeSource && item.source !== activeSource) return false;
@@ -72,7 +74,18 @@ export function LiveFeed() {
       }
       return true;
     });
-  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery]);
+    
+    // Sort with bookmarked items at the top
+    items.sort((a, b) => {
+      const aBookmarked = isBookmarked(a.id);
+      const bBookmarked = isBookmarked(b.id);
+      if (aBookmarked && !bBookmarked) return -1;
+      if (!aBookmarked && bBookmarked) return 1;
+      return 0;
+    });
+    
+    return items;
+  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery, isBookmarked]);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
 
@@ -141,6 +154,7 @@ export function LiveFeed() {
         sources={allSourceInfo}
         prefs={prefs}
         onToggleSource={toggleSource}
+        bookmarkCount={bookmarkCount}
       />
 
       <AnnouncementBanner />
@@ -166,6 +180,8 @@ export function LiveFeed() {
         isLoading={isLoading}
         hasData={grouped.size > 0}
         onLoadMore={handleLoadMore}
+        onBookmark={toggleBookmark}
+        isBookmarked={isBookmarked}
       />
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">

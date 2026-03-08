@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { LayoutToggle } from "./layout-toggle";
 import { FontSizeToggle } from "./font-size-toggle";
 import { ThemeToggle } from "./theme-toggle";
@@ -23,6 +24,7 @@ interface FeedHeaderProps {
   sources: SourceInfo[];
   prefs: FeedPrefs;
   onToggleSource: (source: string) => void;
+  bookmarkCount: number;
 }
 
 export function FeedHeader({
@@ -34,6 +36,7 @@ export function FeedHeader({
   sources,
   prefs,
   onToggleSource,
+  bookmarkCount,
 }: FeedHeaderProps) {
   return (
     <header className="shrink-0 border-b border-border/50 bg-secondary/20 backdrop-blur-sm pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
@@ -91,6 +94,25 @@ export function FeedHeader({
           <LayoutToggle />
           <FontSizeToggle />
           <ThemeToggle />
+          <Link
+            href="/bookmarks"
+            className="p-1.5 sm:p-2 rounded hover:bg-muted transition-colors relative group"
+            title="Saved Articles"
+            aria-label={`Saved Articles (${bookmarkCount})`}
+          >
+            <svg
+              className="w-5 h-5 sm:w-5 sm:h-5 text-amber-600"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+            {bookmarkCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-[9px] sm:text-[10px] font-semibold rounded-full bg-amber-500 text-white whitespace-nowrap">
+                {bookmarkCount > 9 ? "9+" : bookmarkCount}
+              </span>
+            )}
+          </Link>
           <FeedSettings
             sources={sources}
             prefs={prefs}

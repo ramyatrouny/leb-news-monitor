@@ -2,6 +2,9 @@
 
 import { memo, useState, useSyncExternalStore } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
+import { useBookmarks } from "@/hooks/use-bookmarks";
+import { calculateReadTime } from "@/lib/read-time";
+import { Bookmark } from "lucide-react";
 
 /** Shared minute-tick store — all FeedCards subscribe to a single interval */
 let tick = 0;
@@ -57,6 +60,17 @@ export const FeedCard = memo(function FeedCard({
   const rtl = isRtl(item.title);
   const [imgError, setImgError] = useState(false);
   const showImage = item.image && !imgError;
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const bookmarked = isBookmarked(item.id);
+  
+  // Calculate read time from snippet
+  const readTime = calculateReadTime(item.snippet);
+
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleBookmark(item);
+  };
 
   return (
     <a
@@ -114,6 +128,28 @@ export const FeedCard = memo(function FeedCard({
                   {item.snippet}
                 </p>
               )}
+
+              {/* Read time + Bookmark button */}
+              <div className="flex items-center justify-between gap-2 mt-2">
+                <span className="text-[10px] sm:text-[9px] text-muted-foreground/60">
+                  {readTime} min read
+                </span>
+                <button
+                  onClick={handleBookmarkClick}
+                  className={`inline-flex items-center justify-center w-5 h-5 rounded transition-colors ${
+                    bookmarked
+                      ? "text-amber-500 hover:text-amber-600"
+                      : "text-muted-foreground/40 hover:text-muted-foreground/70"
+                  }`}
+                  title={bookmarked ? "Remove bookmark" : "Add bookmark"}
+                  aria-label={bookmarked ? "Remove bookmark" : "Add bookmark"}
+                >
+                  <Bookmark
+                    size={14}
+                    className={bookmarked ? "fill-current" : ""}
+                  />
+                </button>
+              </div>
             </div>
 
             {showImage && (

@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { LayoutToggle } from "./layout-toggle";
 import { FontSizeToggle } from "./font-size-toggle";
 import { ThemeToggle } from "./theme-toggle";
 import { FeedSettings } from "./feed-settings";
+import { Bookmark } from "lucide-react";
 import type { FeedPrefs } from "@/hooks/use-feed-prefs";
 import type { FeedCategory } from "@/config/feeds";
 
@@ -91,6 +93,14 @@ export function FeedHeader({
           <LayoutToggle />
           <FontSizeToggle />
           <ThemeToggle />
+          <Link
+            href="/bookmarks"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+            title="View bookmarks"
+            aria-label="View bookmarks"
+          >
+            <Bookmark size={18} />
+          </Link>
           <FeedSettings
             sources={sources}
             prefs={prefs}

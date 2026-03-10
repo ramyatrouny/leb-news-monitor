@@ -5,7 +5,7 @@ import { LayoutToggle } from "./layout-toggle";
 import { FontSizeToggle } from "./font-size-toggle";
 import { ThemeToggle } from "./theme-toggle";
 import { FeedSettings } from "./feed-settings";
-import { Bookmark } from "lucide-react";
+import { Bookmark, History, RotateCw } from "lucide-react";
 import type { FeedPrefs } from "@/hooks/use-feed-prefs";
 import type { FeedCategory } from "@/config/feeds";
 
@@ -24,7 +24,11 @@ interface FeedHeaderProps {
   isStreaming: boolean;
   sources: SourceInfo[];
   prefs: FeedPrefs;
+  onDateChange: (startDate: Date | null, endDate: Date | null) => void;
   onToggleSource: (source: string) => void;
+  onManualRefresh?: () => Promise<void>;
+  isPollingManual?: boolean;
+  isRefreshing?: boolean;
 }
 
 export function FeedHeader({
@@ -35,7 +39,11 @@ export function FeedHeader({
   isStreaming,
   sources,
   prefs,
+  onDateChange,
   onToggleSource,
+  onManualRefresh,
+  isPollingManual,
+  isRefreshing,
 }: FeedHeaderProps) {
   return (
     <header className="shrink-0 border-b border-border/50 bg-secondary/20 backdrop-blur-sm pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
@@ -101,6 +109,25 @@ export function FeedHeader({
           >
             <Bookmark size={18} />
           </Link>
+          <Link
+            href="/reading-history"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+            title="View reading history"
+            aria-label="View reading history"
+          >
+            <History size={18} />
+          </Link>
+          {isPollingManual && onManualRefresh && (
+            <button
+              onClick={onManualRefresh}
+              disabled={isRefreshing}
+              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Manually refresh feed"
+              aria-label="Manually refresh feed"
+            >
+              <RotateCw size={18} className={isRefreshing ? "animate-spin" : ""} />
+            </button>
+          )}
           <FeedSettings
             sources={sources}
             prefs={prefs}

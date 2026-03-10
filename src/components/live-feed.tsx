@@ -8,6 +8,9 @@ import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
+import { useFocusMode } from "@/hooks/use-focus-mode";
+import { usePollFrequency } from "@/hooks/use-poll-frequency";
+import { isDateInRange } from "@/lib/date-picker-utils";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
@@ -22,14 +25,21 @@ interface SourceGroup {
 }
 
 export function LiveFeed() {
-  const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming } = useFeedStream();
+  const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming, refetch } = useFeedStream();
   const { prefs, toggleSource, syncSources } = useFeedPrefs();
   const { layout } = useLayout();
+  const { timeRange, getCutoff } = useFocusMode();
+  const { intervalSeconds } = usePollFrequency();
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
+    start: null,
+    end: null,
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Group items by source
   const grouped = useMemo(() => {
@@ -70,9 +80,26 @@ export function LiveFeed() {
         const matchesTitle = item.title?.toLowerCase().includes(lowerQuery) ?? false;
         if (!matchesSource && !matchesTitle) return false;
       }
+
+      // Apply focus mode time filter
+      const itemDate = new Date(item.pubDate);
+      const cutoffDate = getCutoff();
+      if (itemDate < cutoffDate) return false;
+
+      // Apply date range filter
+      // The date range is already normalized by the DatePickerFilter component
+      // to ensure proper chronological order and time boundaries
+      if (dateRange.start || dateRange.end) {
+        const range = {
+          start: dateRange.start || new Date(0),
+          end: dateRange.end || new Date(),
+        };
+        if (!isDateInRange(itemDate, range)) return false;
+      }
+
       return true;
     });
-  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery]);
+  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery, getCutoff, dateRange]);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
 
@@ -94,6 +121,19 @@ export function LiveFeed() {
       return Math.min(prev + ITEMS_PER_PAGE, filteredItems.length);
     });
   }, [filteredItems.length]);
+
+  /**
+   * Handle manual refresh when polling is set to manual (intervalSeconds === 0)
+   * Triggers a new fetch and shows visual feedback via spinner
+   */
+  const handleManualRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch]);
 
   // Derived data for child components
   const allSourceInfo = useMemo(() => {
@@ -140,7 +180,11 @@ export function LiveFeed() {
         isStreaming={isStreaming}
         sources={allSourceInfo}
         prefs={prefs}
+        onDateChange={(start, end) => setDateRange({ start, end })}
         onToggleSource={toggleSource}
+        onManualRefresh={handleManualRefresh}
+        isPollingManual={intervalSeconds === 0}
+        isRefreshing={isRefreshing}
       />
 
       <AnnouncementBanner />
@@ -155,6 +199,7 @@ export function LiveFeed() {
         onSourceChange={handleSourceChange}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onDateChange={(start, end) => setDateRange({ start, end })}
       />
 
       <FeedContent

@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
-
-const POLL_INTERVAL = 30_000;
+import { usePollFrequency } from "./use-poll-frequency";
 
 interface FeedState {
   items: FeedItem[];
@@ -20,7 +19,7 @@ interface FeedState {
  * Streams feeds from /api/feeds via NDJSON.
  * Items appear as each source resolves — no waiting for all sources.
  * On refresh, merges new items into existing list without disrupting the UI.
- * Re-fetches every 30s after the previous fetch completes.
+ * Re-fetches on interval specified by usePollFrequency (15s, 30s, 60s, or manual).
  */
 export function useFeedStream() {
   const [state, setState] = useState<FeedState>({
@@ -33,6 +32,7 @@ export function useFeedStream() {
     isStreaming: false,
   });
 
+  const { intervalSeconds } = usePollFrequency();
   const abortRef = useRef<AbortController | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const newIdsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -119,12 +119,18 @@ export function useFeedStream() {
   }, []);
 
   useEffect(() => {
+    // Skip scheduling if manual refresh is selected
+    if (intervalSeconds === 0) {
+      fetchStream(true);
+      return;
+    }
+
     // Recursive setTimeout: only schedule next poll after current one completes
     const schedule = () => {
       pollTimerRef.current = setTimeout(async () => {
         await fetchStream(false);
         schedule();
-      }, POLL_INTERVAL);
+      }, intervalSeconds * 1000);
     };
 
     fetchStream(true).finally(schedule);
@@ -134,15 +140,34 @@ export function useFeedStream() {
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
       if (newIdsTimerRef.current) clearTimeout(newIdsTimerRef.current);
     };
+  }, [fetchStream, intervalSeconds]);
+
+  /**
+   * Manual refetch function for manual refresh mode
+   * Triggers a new fetch without waiting for the interval
+   * Useful when user clicks the refresh button in manual mode
+   */
+  const refetch = useCallback(async () => {
+    await fetchStream(false);
   }, [fetchStream]);
 
-  return state;
+  return {
+    ...state,
+    refetch,
+  };
 }
 
 /**
  * Merge new items into existing list.
  * Returns the merged array + the set of newly added item IDs.
- * Uses item.id as the dedup key (already unique per source + link/guid/title).
+ * 
+ * Strategy:
+ * 1. Deduplicates using item.id (source + link/guid/title combo)
+ * 2. For new items: inserts them in chronological order (newest first)
+ * 3. Preserves existing article order to avoid jitter
+ * 4. Only re-sorts if new articles come with newer timestamps than existing top
+ * 
+ * This prevents old articles from suddenly appearing at the top due to re-sorting.
  */
 function mergeItems(
   existing: FeedItem[],
@@ -163,20 +188,58 @@ function mergeItems(
     }
   }
 
+  // If no new items, return existing list as-is (preserves order)
   if (newItems.length === 0) return { merged: existing, addedIds };
 
-  const merged = [...existing, ...newItems];
-  
-  // Cache timestamps to avoid creating Date objects during sort
-  const timestamps = new Map<string, number>();
-  for (const item of merged) {
-    if (!timestamps.has(item.id)) {
-      timestamps.set(item.id, new Date(item.pubDate).getTime());
-    }
+  // Sort only the new items by pubDate (newest first)
+  const newItemsSorted = [...newItems].sort((a, b) => {
+    const dateA = new Date(a.pubDate).getTime();
+    const dateB = new Date(b.pubDate).getTime();
+    return dateB - dateA;
+  });
+
+  // Get the newest timestamp from existing articles (top of the list)
+  const existingTopDate = existing.length > 0
+    ? new Date(existing[0].pubDate).getTime()
+    : 0;
+
+  // Get the newest timestamp from new articles
+  const newTopDate = newItemsSorted.length > 0
+    ? new Date(newItemsSorted[0].pubDate).getTime()
+    : 0;
+
+  // If new articles are newer than existing top, prepend them
+  // Otherwise, merge them in chronological order
+  if (newTopDate > existingTopDate) {
+    // New articles are fresher - add them to the top
+    return {
+      merged: [...newItemsSorted, ...existing],
+      addedIds,
+    };
   }
-  
-  merged.sort(
-    (a, b) => (timestamps.get(b.id) ?? 0) - (timestamps.get(a.id) ?? 0)
-  );
+
+  // New articles are older than top existing - insert in chronological order
+  const merged = [...existing];
+  const existingTimestamps = new Map<string, number>();
+  for (const item of merged) {
+    existingTimestamps.set(item.id, new Date(item.pubDate).getTime());
+  }
+
+  for (const newItem of newItemsSorted) {
+    const newItemTime = new Date(newItem.pubDate).getTime();
+    let insertIndex = merged.length;
+
+    // Find the right position (newest first)
+    for (let i = 0; i < merged.length; i++) {
+      if (newItemTime > (existingTimestamps.get(merged[i].id) ?? 0)) {
+        insertIndex = i;
+        break;
+      }
+    }
+
+    merged.splice(insertIndex, 0, newItem);
+    existingTimestamps.set(newItem.id, newItemTime);
+  }
+
   return { merged, addedIds };
 }

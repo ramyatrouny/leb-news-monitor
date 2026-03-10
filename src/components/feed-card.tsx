@@ -1,10 +1,11 @@
 "use client";
 
-import { memo, useState, useSyncExternalStore } from "react";
+import { memo, useState, useSyncExternalStore, useEffect } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
 import { useBookmarks } from "@/hooks/use-bookmarks";
+import { useReadingHistory } from "@/hooks/use-reading-history";
 import { calculateReadTime } from "@/lib/read-time";
-import { Bookmark } from "lucide-react";
+import { Bookmark, CheckCircle2 } from "lucide-react";
 
 /** Shared minute-tick store — all FeedCards subscribe to a single interval */
 let tick = 0;
@@ -61,7 +62,9 @@ export const FeedCard = memo(function FeedCard({
   const [imgError, setImgError] = useState(false);
   const showImage = item.image && !imgError;
   const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { isVisited, markAsVisited } = useReadingHistory();
   const bookmarked = isBookmarked(item.id);
+  const visited = isVisited(item.id);
   
   // Calculate read time from snippet
   const readTime = calculateReadTime(item.snippet);
@@ -72,11 +75,25 @@ export const FeedCard = memo(function FeedCard({
     toggleBookmark(item);
   };
 
+  // Mark as visited when link is clicked
+  useEffect(() => {
+    const handleClick = () => {
+      markAsVisited(item.id, item);
+    };
+    
+    const link = document.querySelector(`[data-article-id="${item.id}"]`);
+    if (link) {
+      link.addEventListener("click", handleClick);
+      return () => link.removeEventListener("click", handleClick);
+    }
+  }, [item, markAsVisited]);
+
   return (
     <a
       href={item.link}
       target="_blank"
       rel="noopener noreferrer ugc"
+      data-article-id={item.id}
       className={`block group${isNew ? " card-enter" : ""}`}
       title={`Read: ${item.title} - from ${item.source}`}
       aria-label={`Read full article: ${item.title} on ${item.source}`}
@@ -131,9 +148,14 @@ export const FeedCard = memo(function FeedCard({
 
               {/* Read time + Bookmark button */}
               <div className="flex items-center justify-between gap-2 mt-2">
-                <span className="text-[10px] sm:text-[9px] text-muted-foreground/60">
-                  {readTime} min read
-                </span>
+                <div className="flex items-center gap-1">
+                  {visited && <CheckCircle2 size={12} className="text-green-600/70" />}
+                  <span className={`text-[10px] sm:text-[9px] ${
+                    visited ? "text-muted-foreground/40" : "text-muted-foreground/60"
+                  }`}>
+                    {readTime} min read
+                  </span>
+                </div>
                 <button
                   onClick={handleBookmarkClick}
                   className={`inline-flex items-center justify-center w-5 h-5 rounded transition-colors ${

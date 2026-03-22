@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useCallback, useState, useEffect, useRef } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
 import { CATEGORY_ORDER, type FeedCategory } from "@/config/feeds";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,11 +10,13 @@ import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
 import { useFocusMode } from "@/hooks/use-focus-mode";
 import { usePollFrequency } from "@/hooks/use-poll-frequency";
+import { useSoundAlerts } from "@/hooks/use-sound-alerts";
 import { isDateInRange } from "@/lib/date-picker-utils";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
 import { FeedContent } from "./feed-content";
+import { LiveTicker, LiveTickerToggle } from "./live-ticker";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -30,6 +32,7 @@ export function LiveFeed() {
   const { layout } = useLayout();
   const { timeRange, getCutoff } = useFocusMode();
   const { intervalSeconds } = usePollFrequency();
+  const { enabled: soundAlertsEnabled, playSound } = useSoundAlerts();
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
@@ -40,6 +43,8 @@ export function LiveFeed() {
     end: null,
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [tickerVisible, setTickerVisible] = useState(true);
+  const prevCountRef = useRef(0);
 
   // Group items by source
   const grouped = useMemo(() => {
@@ -169,6 +174,49 @@ export function LiveFeed() {
     return counts;
   }, [allItems, prefs.hidden]);
 
+  // Sound alert for breaking news
+  useEffect(() => {
+    if (!soundAlertsEnabled) return;
+    
+    // Check if new breaking news articles have been added
+    const currentCount = allItems.length;
+    if (prevCountRef.current > 0 && currentCount > prevCountRef.current) {
+      // Get the newly added items (they're at the beginning of allItems array)
+      const newCount = currentCount - prevCountRef.current;
+      const newArticles = allItems.slice(0, newCount);
+      
+      // Check if any new articles are breaking news
+      const hasBreakingNews = newArticles.some(
+        (item) => item.sourceCategory === "breaking" && !prefs.hidden.has(item.source)
+      );
+      
+      if (hasBreakingNews) {
+        playSound();
+      }
+    }
+    
+    prevCountRef.current = currentCount;
+  }, [allItems, soundAlertsEnabled, prefs.hidden, playSound]);
+
+  /**
+   * Handle clicking on a ticker article to scroll to it in the feed
+   */
+  const handleTickerArticleClick = useCallback((article: FeedItem) => {
+    // Set filters to show this article
+    setActiveCategory("all");
+    setActiveSource(null);
+    setSearchQuery("");
+    setVisibleCount(ITEMS_PER_PAGE);
+    
+    // Scroll to the article (ID-based)
+    setTimeout(() => {
+      const element = document.querySelector(`[data-article-id="${article.id}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  }, []);
+
   return (
     <TooltipProvider>
     <div className="h-screen flex flex-col overflow-hidden bg-background">
@@ -202,6 +250,16 @@ export function LiveFeed() {
         onDateChange={(start, end) => setDateRange({ start, end })}
       />
 
+      {/* Live Ticker - Shows latest articles scrolling horizontally */}
+      {allItems.length > 0 && tickerVisible && (
+        <LiveTicker
+          items={allItems}
+          onArticleClick={handleTickerArticleClick}
+          onHide={() => setTickerVisible(false)}
+          maxItems={15}
+        />
+      )}
+
       <FeedContent
         items={visibleItems}
         newIds={newIds}
@@ -212,6 +270,11 @@ export function LiveFeed() {
         hasData={grouped.size > 0}
         onLoadMore={handleLoadMore}
       />
+
+      {/* Show ticker toggle when hidden */}
+      {!tickerVisible && allItems.length > 0 && (
+        <LiveTickerToggle onShow={() => setTickerVisible(true)} />
+      )}
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">
         <span>Auto-refresh 30s</span>

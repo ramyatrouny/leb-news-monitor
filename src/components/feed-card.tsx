@@ -5,7 +5,9 @@ import type { FeedItem } from "@/app/api/feeds/route";
 import { useBookmarks } from "@/hooks/use-bookmarks";
 import { useReadingHistory } from "@/hooks/use-reading-history";
 import { calculateReadTime } from "@/lib/read-time";
-import { Bookmark, CheckCircle2 } from "lucide-react";
+import { Bookmark, CheckCircle2, BookOpen } from "lucide-react";
+import { ArticleReader, useArticleReader } from "@/components/article-reader";
+import { ArticleShareButton } from "@/components/article-share-button";
 
 /** Shared minute-tick store — all FeedCards subscribe to a single interval */
 let tick = 0;
@@ -66,6 +68,9 @@ export const FeedCard = memo(function FeedCard({
   const bookmarked = isBookmarked(item.id);
   const visited = isVisited(item.id);
   
+  // Article reader state
+  const { article: readerArticle, isOpen, openArticle, closeArticle } = useArticleReader();
+  
   // Calculate read time from snippet
   const readTime = calculateReadTime(item.snippet);
 
@@ -75,30 +80,34 @@ export const FeedCard = memo(function FeedCard({
     toggleBookmark(item);
   };
 
-  // Mark as visited when link is clicked
-  useEffect(() => {
-    const handleClick = () => {
-      markAsVisited(item.id, item);
-    };
-    
-    const link = document.querySelector(`[data-article-id="${item.id}"]`);
-    if (link) {
-      link.addEventListener("click", handleClick);
-      return () => link.removeEventListener("click", handleClick);
-    }
-  }, [item, markAsVisited]);
+  const handleReadInApp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    markAsVisited(item.id, item);
+    openArticle(item);
+  };
+
+  const handleCardClick = () => {
+    markAsVisited(item.id, item);
+    window.open(item.link, "_blank", "noopener,noreferrer");
+  };
 
   return (
-    <a
-      href={item.link}
-      target="_blank"
-      rel="noopener noreferrer ugc"
-      data-article-id={item.id}
-      className={`block group${isNew ? " card-enter" : ""}`}
-      title={`Read: ${item.title} - from ${item.source}`}
-      aria-label={`Read full article: ${item.title} on ${item.source}`}
-    >
-      <article className="relative h-full rounded-lg border border-border/40 bg-card/50 active:bg-accent/50 hover:bg-accent/40 hover:border-border/60 transition-colors duration-150 overflow-hidden">
+    <>
+      <article
+        data-article-id={item.id}
+        onClick={handleCardClick}
+        className={`block group${isNew ? " card-enter" : ""} relative h-full rounded-lg border border-border/40 bg-card/50 active:bg-accent/50 hover:bg-accent/40 hover:border-border/60 transition-colors duration-150 overflow-hidden cursor-pointer`}
+        title={`Read: ${item.title} - from ${item.source}`}
+        role="link"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
+      >
         {/* Accent bar (left edge) */}
         <div
           className="absolute left-0 top-0 bottom-0 w-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-150"
@@ -146,7 +155,7 @@ export const FeedCard = memo(function FeedCard({
                 </p>
               )}
 
-              {/* Read time + Bookmark button */}
+              {/* Read time + Action buttons */}
               <div className="flex items-center justify-between gap-2 mt-2">
                 <div className="flex items-center gap-1">
                   {visited && <CheckCircle2 size={12} className="text-green-600/70" />}
@@ -156,21 +165,44 @@ export const FeedCard = memo(function FeedCard({
                     {readTime} min read
                   </span>
                 </div>
-                <button
-                  onClick={handleBookmarkClick}
-                  className={`inline-flex items-center justify-center w-5 h-5 rounded transition-colors ${
-                    bookmarked
-                      ? "text-amber-500 hover:text-amber-600"
-                      : "text-muted-foreground/40 hover:text-muted-foreground/70"
-                  }`}
-                  title={bookmarked ? "Remove bookmark" : "Add bookmark"}
-                  aria-label={bookmarked ? "Remove bookmark" : "Add bookmark"}
-                >
-                  <Bookmark
-                    size={14}
-                    className={bookmarked ? "fill-current" : ""}
+
+                {/* Action buttons group */}
+                <div className="flex items-center gap-0.5">
+                  {/* Read in app button */}
+                  <button
+                    onClick={handleReadInApp}
+                    className="inline-flex items-center justify-center w-5 h-5 rounded transition-colors text-muted-foreground/40 hover:text-foreground/70 hover:bg-accent/50"
+                    title="Read in app"
+                    aria-label="Read article in app"
+                  >
+                    <BookOpen size={14} />
+                  </button>
+
+                  {/* Share button */}
+                  <ArticleShareButton
+                    article={item}
+                    variant="icon"
+                    size="xs"
+                    className="text-muted-foreground/40 hover:text-foreground/70"
                   />
-                </button>
+
+                  {/* Bookmark button */}
+                  <button
+                    onClick={handleBookmarkClick}
+                    className={`inline-flex items-center justify-center w-5 h-5 rounded transition-colors ${
+                      bookmarked
+                        ? "text-amber-500 hover:text-amber-600"
+                        : "text-muted-foreground/40 hover:text-muted-foreground/70"
+                    }`}
+                    title={bookmarked ? "Remove bookmark" : "Add bookmark"}
+                    aria-label={bookmarked ? "Remove bookmark" : "Add bookmark"}
+                  >
+                    <Bookmark
+                      size={14}
+                      className={bookmarked ? "fill-current" : ""}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -189,7 +221,15 @@ export const FeedCard = memo(function FeedCard({
           </div>
         </div>
       </article>
-    </a>
+
+      {/* Article Reader - Full-page view */}
+      {isOpen && readerArticle && (
+        <ArticleReader
+          article={readerArticle}
+          onClose={closeArticle}
+        />
+      )}
+    </>
   );
 });
 

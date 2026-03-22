@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useCallback, useState, useEffect, useRef } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
 import { CATEGORY_ORDER, type FeedCategory } from "@/config/feeds";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,10 +8,15 @@ import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
+import { useFocusMode } from "@/hooks/use-focus-mode";
+import { usePollFrequency } from "@/hooks/use-poll-frequency";
+import { useSoundAlerts } from "@/hooks/use-sound-alerts";
+import { isDateInRange } from "@/lib/date-picker-utils";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
 import { FeedContent } from "./feed-content";
+import { LiveTicker, LiveTickerToggle } from "./live-ticker";
 
 const ITEMS_PER_PAGE = 30;
 
@@ -22,14 +27,24 @@ interface SourceGroup {
 }
 
 export function LiveFeed() {
-  const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming } = useFeedStream();
+  const { items: allItems, newIds, sources: sourceCount, fetchedAt, isLoading, isStreaming, refetch } = useFeedStream();
   const { prefs, toggleSource, syncSources } = useFeedPrefs();
   const { layout } = useLayout();
+  const { timeRange, getCutoff } = useFocusMode();
+  const { intervalSeconds } = usePollFrequency();
+  const { enabled: soundAlertsEnabled, playSound } = useSoundAlerts();
 
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
+    start: null,
+    end: null,
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [tickerVisible, setTickerVisible] = useState(true);
+  const prevCountRef = useRef(0);
 
   // Group items by source
   const grouped = useMemo(() => {
@@ -70,9 +85,26 @@ export function LiveFeed() {
         const matchesTitle = item.title?.toLowerCase().includes(lowerQuery) ?? false;
         if (!matchesSource && !matchesTitle) return false;
       }
+
+      // Apply focus mode time filter
+      const itemDate = new Date(item.pubDate);
+      const cutoffDate = getCutoff();
+      if (itemDate < cutoffDate) return false;
+
+      // Apply date range filter
+      // The date range is already normalized by the DatePickerFilter component
+      // to ensure proper chronological order and time boundaries
+      if (dateRange.start || dateRange.end) {
+        const range = {
+          start: dateRange.start || new Date(0),
+          end: dateRange.end || new Date(),
+        };
+        if (!isDateInRange(itemDate, range)) return false;
+      }
+
       return true;
     });
-  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery]);
+  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery, getCutoff, dateRange]);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
 
@@ -94,6 +126,19 @@ export function LiveFeed() {
       return Math.min(prev + ITEMS_PER_PAGE, filteredItems.length);
     });
   }, [filteredItems.length]);
+
+  /**
+   * Handle manual refresh when polling is set to manual (intervalSeconds === 0)
+   * Triggers a new fetch and shows visual feedback via spinner
+   */
+  const handleManualRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch]);
 
   // Derived data for child components
   const allSourceInfo = useMemo(() => {
@@ -129,6 +174,49 @@ export function LiveFeed() {
     return counts;
   }, [allItems, prefs.hidden]);
 
+  // Sound alert for breaking news
+  useEffect(() => {
+    if (!soundAlertsEnabled) return;
+    
+    // Check if new breaking news articles have been added
+    const currentCount = allItems.length;
+    if (prevCountRef.current > 0 && currentCount > prevCountRef.current) {
+      // Get the newly added items (they're at the beginning of allItems array)
+      const newCount = currentCount - prevCountRef.current;
+      const newArticles = allItems.slice(0, newCount);
+      
+      // Check if any new articles are breaking news
+      const hasBreakingNews = newArticles.some(
+        (item) => item.sourceCategory === "breaking" && !prefs.hidden.has(item.source)
+      );
+      
+      if (hasBreakingNews) {
+        playSound();
+      }
+    }
+    
+    prevCountRef.current = currentCount;
+  }, [allItems, soundAlertsEnabled, prefs.hidden, playSound]);
+
+  /**
+   * Handle clicking on a ticker article to scroll to it in the feed
+   */
+  const handleTickerArticleClick = useCallback((article: FeedItem) => {
+    // Set filters to show this article
+    setActiveCategory("all");
+    setActiveSource(null);
+    setSearchQuery("");
+    setVisibleCount(ITEMS_PER_PAGE);
+    
+    // Scroll to the article (ID-based)
+    setTimeout(() => {
+      const element = document.querySelector(`[data-article-id="${article.id}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  }, []);
+
   return (
     <TooltipProvider>
     <div className="h-screen flex flex-col overflow-hidden bg-background">
@@ -140,7 +228,11 @@ export function LiveFeed() {
         isStreaming={isStreaming}
         sources={allSourceInfo}
         prefs={prefs}
+        onDateChange={(start, end) => setDateRange({ start, end })}
         onToggleSource={toggleSource}
+        onManualRefresh={handleManualRefresh}
+        isPollingManual={intervalSeconds === 0}
+        isRefreshing={isRefreshing}
       />
 
       <AnnouncementBanner />
@@ -155,7 +247,18 @@ export function LiveFeed() {
         onSourceChange={handleSourceChange}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onDateChange={(start, end) => setDateRange({ start, end })}
       />
+
+      {/* Live Ticker - Shows latest articles scrolling horizontally */}
+      {allItems.length > 0 && tickerVisible && (
+        <LiveTicker
+          items={allItems}
+          onArticleClick={handleTickerArticleClick}
+          onHide={() => setTickerVisible(false)}
+          maxItems={15}
+        />
+      )}
 
       <FeedContent
         items={visibleItems}
@@ -167,6 +270,11 @@ export function LiveFeed() {
         hasData={grouped.size > 0}
         onLoadMore={handleLoadMore}
       />
+
+      {/* Show ticker toggle when hidden */}
+      {!tickerVisible && allItems.length > 0 && (
+        <LiveTickerToggle onShow={() => setTickerVisible(true)} />
+      )}
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">
         <span>Auto-refresh 30s</span>

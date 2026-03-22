@@ -3,6 +3,23 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  images: {
+    remotePatterns: [
+      // Allow images from any domain (common for news aggregators)
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+    ],
+    // Optimize image loading
+    formats: ["image/avif", "image/webp"],
+    // Cache images aggressively
+    minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
+  },
   async headers() {
     return [
       {

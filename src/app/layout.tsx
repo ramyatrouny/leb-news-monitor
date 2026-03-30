@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins, Tajawal } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -176,7 +175,6 @@ export default function RootLayout({
       >
         {children}
         <Analytics />
-        <SpeedInsights />
         <GoogleAnalytics gaId="G-R2L7NG8ET3" />
       </body>
     </html>

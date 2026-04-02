@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useMemo } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
 import type { FeedLayout } from "@/hooks/use-layout";
+import type { TagInfo } from "@/lib/entity-extractor";
+import { FeedCardProvider, type FeedCardContextValue } from "./feed-card-context";
 import { FeedCard, FeedCardSkeleton } from "./feed-card";
 
 interface FeedContentProps {
@@ -14,6 +16,14 @@ interface FeedContentProps {
   isLoading: boolean;
   hasData: boolean;
   onLoadMore: () => void;
+  /** Search query for text highlighting */
+  highlightQuery?: string;
+  /** Get tags for a specific item */
+  getItemTags?: (itemId: string) => string[];
+  /** Tag lookup map */
+  tagIndex?: Map<string, TagInfo>;
+  /** Callback when a tag chip is clicked */
+  onTagClick?: (tag: string) => void;
 }
 
 export function FeedContent({
@@ -25,6 +35,10 @@ export function FeedContent({
   isLoading,
   hasData,
   onLoadMore,
+  highlightQuery = "",
+  getItemTags,
+  tagIndex,
+  onTagClick,
 }: FeedContentProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevObserverRef = useRef<IntersectionObserver | null>(null);
@@ -57,6 +71,20 @@ export function FeedContent({
     [onLoadMore]
   );
 
+  // Build context value only when props change
+  const noopGetTags = useCallback(() => [] as string[], []);
+  const noopTagClick = useCallback(() => {}, []);
+
+  const ctxValue = useMemo<FeedCardContextValue>(
+    () => ({
+      highlightQuery,
+      getItemTags: getItemTags ?? noopGetTags,
+      tagIndex: tagIndex ?? new Map(),
+      onTagClick: onTagClick ?? noopTagClick,
+    }),
+    [highlightQuery, getItemTags, tagIndex, onTagClick, noopGetTags, noopTagClick],
+  );
+
   return (
     <main ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain">
       <div className="p-2.5 sm:p-4">
@@ -69,11 +97,13 @@ export function FeedContent({
         )}
 
         {!isLoading && items.length > 0 && (
-          <div key={layout} className={`layout-enter ${layoutClass}`}>
-            {items.map((item) => (
-              <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} />
-            ))}
-          </div>
+          <FeedCardProvider value={ctxValue}>
+            <div key={layout} className={`layout-enter ${layoutClass}`}>
+              {items.map((item) => (
+                <FeedCard key={item.id} item={item} isNew={newIds.has(item.id)} />
+              ))}
+            </div>
+          </FeedCardProvider>
         )}
 
         {hasMore && (

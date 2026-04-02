@@ -1,7 +1,9 @@
 "use client";
 
-import { memo, useState, useSyncExternalStore } from "react";
+import { memo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { FeedItem } from "@/app/api/feeds/route";
+import { useFeedCardContext } from "./feed-card-context";
+import { ArticleTags } from "./tag-browser";
 
 /** Shared minute-tick store — all FeedCards subscribe to a single interval */
 let tick = 0;
@@ -46,6 +48,24 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diffSec / 86400)}d`;
 }
 
+/** Highlight matching query terms in text */
+function highlightText(text: string, query: string): ReactNode {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = text.split(regex);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    regex.test(part) ? (
+      <mark key={i} className="bg-primary/25 text-foreground rounded-sm px-px">
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
+  );
+}
+
 export const FeedCard = memo(function FeedCard({
   item,
   isNew,
@@ -57,6 +77,11 @@ export const FeedCard = memo(function FeedCard({
   const rtl = isRtl(item.title);
   const [imgError, setImgError] = useState(false);
   const showImage = item.image && !imgError;
+
+  // Consume context for highlighting and tags (optional — graceful fallback)
+  const ctx = useFeedCardContext();
+  const query = ctx?.highlightQuery ?? "";
+  const tags = ctx ? ctx.getItemTags(item.id) : [];
 
   return (
     <a
@@ -102,7 +127,7 @@ export const FeedCard = memo(function FeedCard({
                 dir={rtl ? "rtl" : "ltr"}
                 lang={rtl ? "ar" : undefined}
               >
-                {item.title}
+                {highlightText(item.title, query)}
               </h3>
 
               {item.snippet && (
@@ -111,8 +136,17 @@ export const FeedCard = memo(function FeedCard({
                   dir={rtl ? "rtl" : "ltr"}
                   lang={rtl ? "ar" : undefined}
                 >
-                  {item.snippet}
+                  {highlightText(item.snippet, query)}
                 </p>
+              )}
+
+              {/* Entity tags from context */}
+              {tags.length > 0 && ctx && (
+                <ArticleTags
+                  tags={tags}
+                  tagIndex={ctx.tagIndex}
+                  onTagClick={ctx.onTagClick}
+                />
               )}
             </div>
 

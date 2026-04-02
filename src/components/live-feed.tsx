@@ -8,12 +8,29 @@ import Link from "next/link";
 import { useFeedPrefs } from "@/hooks/use-feed-prefs";
 import { useFeedStream } from "@/hooks/use-feed-stream";
 import { useLayout } from "@/hooks/use-layout";
+import { useSearch, applySearchFilters, type SearchFilters } from "@/hooks/use-search";
+import { useDateFilter, applyDateFilter } from "@/hooks/use-date-filter";
+import { useTags } from "@/hooks/use-tags";
+import { useTrending } from "@/hooks/use-trending";
 import { AnnouncementBanner } from "./announcement-banner";
 import { FeedHeader } from "./feed-header";
 import { FeedFilterBar } from "./feed-filter-bar";
 import { FeedContent } from "./feed-content";
+import { DatePickerFilter } from "./date-picker-filter";
+import { TagBrowser } from "./tag-browser";
+import { TrendingBar } from "./trending-bar";
 
 const ITEMS_PER_PAGE = 30;
+
+const EMPTY_FILTERS: SearchFilters = {
+  query: "",
+  dateFrom: "",
+  dateTo: "",
+  category: "",
+  source: "",
+  language: "",
+  hasImage: false,
+};
 
 interface SourceGroup {
   color?: string;
@@ -26,9 +43,16 @@ export function LiveFeed() {
   const { prefs, toggleSource, syncSources } = useFeedPrefs();
   const { layout } = useLayout();
 
+  // Search
+  const { recentSearches, commitSearch, removeRecent, clearRecent } = useSearch();
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>(EMPTY_FILTERS);
+
+  // Date filter
+  const { dateRange, setFrom, setTo, setRange, clearDate, hasDateFilter } = useDateFilter();
+
+  // Category & source filter (existing)
   const [activeCategory, setActiveCategory] = useState<FeedCategory | "all">("all");
   const [activeSource, setActiveSource] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   // Group items by source
@@ -57,26 +81,67 @@ export function LiveFeed() {
     }
   }, [isStreaming, grouped, syncSources]);
 
-  // Filtered items
-  const filteredItems = useMemo(() => {
-    if (!allItems.length) return [];
-    return allItems.filter((item) => {
-      if (prefs.hidden.has(item.source)) return false;
-      if (activeCategory !== "all" && item.sourceCategory !== activeCategory) return false;
-      if (activeSource && item.source !== activeSource) return false;
-      if (searchQuery) {
-        const lowerQuery = searchQuery.toLowerCase();
-        const matchesSource = item.source.toLowerCase().includes(lowerQuery);
-        const matchesTitle = item.title?.toLowerCase().includes(lowerQuery) ?? false;
-        if (!matchesSource && !matchesTitle) return false;
-      }
-      return true;
-    });
-  }, [allItems, prefs.hidden, activeCategory, activeSource, searchQuery]);
+  // ── Filter pipeline ────────────────────────────────────────
+  // Step 1: Remove hidden sources
+  const afterHidden = useMemo(
+    () => allItems.filter((item) => !prefs.hidden.has(item.source)),
+    [allItems, prefs.hidden],
+  );
+
+  // Step 2: Category filter
+  const afterCategory = useMemo(
+    () =>
+      activeCategory === "all"
+        ? afterHidden
+        : afterHidden.filter((item) => item.sourceCategory === activeCategory),
+    [afterHidden, activeCategory],
+  );
+
+  // Step 3: Source filter
+  const afterSource = useMemo(
+    () =>
+      activeSource
+        ? afterCategory.filter((item) => item.source === activeSource)
+        : afterCategory,
+    [afterCategory, activeSource],
+  );
+
+  // Step 4: Search filters (text, category, source, language, image)
+  const afterSearch = useMemo(
+    () => applySearchFilters(afterSource, searchFilters),
+    [afterSource, searchFilters],
+  );
+
+  // Step 5: Date filter
+  const afterDate = useMemo(
+    () => applyDateFilter(afterSearch, dateRange),
+    [afterSearch, dateRange],
+  );
+
+  // Tags — computed on all items (not filtered), filter applied next
+  const {
+    activeTags,
+    allTags,
+    tagIndex,
+    toggleTag,
+    clearTags,
+    filterByTags,
+    getItemTags,
+    hasActiveTags,
+  } = useTags(allItems);
+
+  // Step 6: Tag filter
+  const filteredItems = useMemo(
+    () => (hasActiveTags ? filterByTags(afterDate) : afterDate),
+    [hasActiveTags, filterByTags, afterDate],
+  );
+
+  // Trending — computed on all items, decoupled from search
+  const { keywords: trendingKeywords } = useTrending(allItems);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
 
-  // Filter handlers
+  // ── Handlers ───────────────────────────────────────────────
   const handleCategoryChange = useCallback((cat: FeedCategory | "all") => {
     setActiveCategory(cat);
     setActiveSource(null);
@@ -94,6 +159,61 @@ export function LiveFeed() {
       return Math.min(prev + ITEMS_PER_PAGE, filteredItems.length);
     });
   }, [filteredItems.length]);
+
+  // Search filter handlers
+  const handleQueryChange = useCallback((query: string) => {
+    setSearchFilters((prev) => ({ ...prev, query }));
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, []);
+
+  const handleCommitSearch = useCallback(
+    (term: string) => {
+      commitSearch(term);
+    },
+    [commitSearch],
+  );
+
+  const handleFilterChange = useCallback(
+    <K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) => {
+      setSearchFilters((prev) => ({ ...prev, [key]: value }));
+      setVisibleCount(ITEMS_PER_PAGE);
+    },
+    [],
+  );
+
+  const handleResetFilters = useCallback(() => {
+    setSearchFilters(EMPTY_FILTERS);
+    clearDate();
+    clearTags();
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [clearDate, clearTags]);
+
+  const hasActiveSearchFilters = useMemo(() => {
+    return (
+      searchFilters.query !== "" ||
+      searchFilters.category !== "" ||
+      searchFilters.source !== "" ||
+      searchFilters.language !== "" ||
+      searchFilters.hasImage ||
+      hasDateFilter ||
+      hasActiveTags
+    );
+  }, [searchFilters, hasDateFilter, hasActiveTags]);
+
+  // Trending keyword click → populate search (decoupled callback)
+  const handleTrendingClick = useCallback((keyword: string) => {
+    setSearchFilters((prev) => ({ ...prev, query: keyword }));
+    commitSearch(keyword);
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [commitSearch]);
+
+  // Tag click from card → toggle tag
+  const handleCardTagClick = useCallback(
+    (tag: string) => {
+      toggleTag(tag);
+    },
+    [toggleTag],
+  );
 
   // Derived data for child components
   const allSourceInfo = useMemo(() => {
@@ -129,6 +249,11 @@ export function LiveFeed() {
     return counts;
   }, [allItems, prefs.hidden]);
 
+  const sourceNames = useMemo(
+    () => [...grouped.keys()].filter((n) => !prefs.hidden.has(n)).sort(),
+    [grouped, prefs.hidden],
+  );
+
   return (
     <TooltipProvider>
     <div className="h-screen flex flex-col overflow-hidden bg-background">
@@ -145,6 +270,16 @@ export function LiveFeed() {
 
       <AnnouncementBanner />
 
+      {/* Trending bar */}
+      {trendingKeywords.length > 0 && (
+        <div className="shrink-0 border-b border-border/30 bg-secondary/5 px-3 sm:px-4">
+          <TrendingBar
+            keywords={trendingKeywords}
+            onKeywordClick={handleTrendingClick}
+          />
+        </div>
+      )}
+
       <FeedFilterBar
         activeCategory={activeCategory}
         activeSource={activeSource}
@@ -153,8 +288,36 @@ export function LiveFeed() {
         filteredCount={filteredItems.length}
         onCategoryChange={handleCategoryChange}
         onSourceChange={handleSourceChange}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={searchFilters.query}
+        onSearchChange={handleQueryChange}
+        onCommitSearch={handleCommitSearch}
+        recentSearches={recentSearches}
+        onRemoveRecent={removeRecent}
+        onClearRecent={clearRecent}
+        filters={searchFilters}
+        onFilterChange={handleFilterChange}
+        sourceNames={sourceNames}
+        onResetAll={handleResetFilters}
+        hasActiveFilters={hasActiveSearchFilters}
+        datePicker={
+          <DatePickerFilter
+            dateRange={dateRange}
+            onFromChange={setFrom}
+            onToChange={setTo}
+            onRangeChange={setRange}
+            onClear={clearDate}
+            hasDateFilter={hasDateFilter}
+          />
+        }
+        tagBrowser={
+          <TagBrowser
+            allTags={allTags}
+            activeTags={activeTags}
+            onToggleTag={toggleTag}
+            onClear={clearTags}
+            hasActiveTags={hasActiveTags}
+          />
+        }
       />
 
       <FeedContent
@@ -166,6 +329,10 @@ export function LiveFeed() {
         isLoading={isLoading}
         hasData={grouped.size > 0}
         onLoadMore={handleLoadMore}
+        highlightQuery={searchFilters.query}
+        getItemTags={getItemTags}
+        tagIndex={tagIndex}
+        onTagClick={handleCardTagClick}
       />
 
       <footer className="hidden sm:flex shrink-0 px-4 py-1 border-t border-border/30 bg-secondary/10 items-center justify-between text-[9px] text-muted-foreground/40 uppercase tracking-widest">

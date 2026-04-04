@@ -23,6 +23,8 @@ interface FeedHeaderProps {
   sources: SourceInfo[];
   prefs: FeedPrefs;
   onToggleSource: (source: string) => void;
+  bookmarkCount: number;
+  readingListCount: number;
 }
 
 export function FeedHeader({
@@ -34,6 +36,8 @@ export function FeedHeader({
   sources,
   prefs,
   onToggleSource,
+  bookmarkCount,
+  readingListCount,
 }: FeedHeaderProps) {
   return (
     <header className="shrink-0 border-b border-border/50 bg-secondary/20 backdrop-blur-sm pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
@@ -87,6 +91,35 @@ export function FeedHeader({
           <span className="sm:hidden text-xs text-muted-foreground tabular-nums">
             {totalItems}
           </span>
+
+          {/* Bookmarks & Reading List nav */}
+          {(bookmarkCount > 0 || readingListCount > 0) && (
+            <a
+              href="/reading-list"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border/40 hover:border-border/60 hover:bg-accent/40 transition-colors text-muted-foreground hover:text-foreground"
+              title="View saved articles"
+            >
+              {bookmarkCount > 0 && (
+                <span className="flex items-center gap-1">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" className="text-red-500">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                  <span className="text-[11px] font-semibold tabular-nums">{bookmarkCount}</span>
+                </span>
+              )}
+              {bookmarkCount > 0 && readingListCount > 0 && (
+                <div className="w-px h-3 bg-border/50" />
+              )}
+              {readingListCount > 0 && (
+                <span className="flex items-center gap-1">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1.5" className="text-blue-500">
+                    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                  </svg>
+                  <span className="text-[11px] font-semibold tabular-nums">{readingListCount}</span>
+                </span>
+              )}
+            </a>
+          )}
 
           <LayoutToggle />
           <FontSizeToggle />

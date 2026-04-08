@@ -6,6 +6,9 @@ import {
   CATEGORY_ORDER,
   type FeedCategory,
 } from "@/config/feeds";
+import { FocusModeFilter } from "./focus-mode-filter";
+import { DatePickerFilter } from "./date-picker-filter";
+import { PollFrequencyControl } from "./poll-frequency-control";
 
 interface SourceChip {
   name: string;
@@ -24,6 +27,7 @@ interface FeedFilterBarProps {
   onSourceChange: (source: string | null) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onDateChange?: (startDate: Date | null, endDate: Date | null) => void;
 }
 
 export function FeedFilterBar({
@@ -36,6 +40,7 @@ export function FeedFilterBar({
   onSourceChange,
   searchQuery,
   onSearchChange,
+  onDateChange,
 }: FeedFilterBarProps) {
   const filteredSourceChips = sourceChips.filter((s) => {
     const categoryMatch = activeCategory === "all" || s.category === activeCategory;
@@ -44,7 +49,17 @@ export function FeedFilterBar({
   });
 
   return (
-    <div className="shrink-0 border-b border-border/40 bg-secondary/10 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+    <div className="shrink-0 border-b border-border/40 bg-secondary/10 pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] overflow-visible">
+      {/* Additional filters row */}
+      <div className="px-3 sm:px-4 py-2 flex items-center gap-2 overflow-x-auto border-b border-border/20 overflow-y-visible">
+        <FocusModeFilter />
+        <DatePickerFilter 
+          onDateChange={onDateChange || (() => {})}
+          isActive={false}
+        />
+        <PollFrequencyControl />
+      </div>
+
       {/* Search bar */}
       <div className="px-3 sm:px-4 py-3 sm:py-3">
         <div className="relative">

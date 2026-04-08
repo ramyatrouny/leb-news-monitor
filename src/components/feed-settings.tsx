@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Volume2, VolumeX } from "lucide-react";
 import type { FeedPrefs } from "@/hooks/use-feed-prefs";
+import { useSoundAlerts } from "@/hooks/use-sound-alerts";
 import {
   CATEGORY_LABELS,
   CATEGORY_COLORS,
@@ -36,6 +38,7 @@ export function FeedSettings({
   onToggle: (source: string) => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const { enabled: soundAlertsEnabled, toggle: toggleSoundAlerts } = useSoundAlerts();
 
   const byCategory = CATEGORY_ORDER.map((cat) => {
     const catSources = sources
@@ -62,6 +65,7 @@ export function FeedSettings({
         <TooltipTrigger asChild>
           <SheetTrigger asChild>
             <button
+              suppressHydrationWarning
               className="relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-2 sm:py-1 rounded text-xs sm:text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground active:text-foreground hover:bg-accent/50 active:bg-accent/50 transition-colors cursor-pointer"
             >
           <svg
@@ -197,6 +201,30 @@ export function FeedSettings({
               </div>
             );
           })}
+        </div>
+
+        {/* Sound alerts toggle */}
+        <div className="border-t border-border/30 px-4 py-3 bg-secondary/5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              {soundAlertsEnabled ? (
+                <Volume2 size={16} className="text-primary flex-shrink-0" />
+              ) : (
+                <VolumeX size={16} className="text-muted-foreground flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="text-xs sm:text-[10px] font-medium block">Sound Alerts</span>
+                <span className="text-[10px] sm:text-[9px] text-muted-foreground/70">
+                  {soundAlertsEnabled ? "Enabled for breaking news" : "Disabled"}
+                </span>
+              </div>
+            </div>
+            <Switch
+              checked={soundAlertsEnabled}
+              onCheckedChange={toggleSoundAlerts}
+              className="scale-100 sm:scale-90 flex-shrink-0"
+            />
+          </div>
         </div>
       </SheetContent>
     </Sheet>

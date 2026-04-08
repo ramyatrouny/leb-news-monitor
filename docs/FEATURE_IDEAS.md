@@ -385,23 +385,23 @@ The following were in the original list but **already exist** in the codebase:
 ### Phase 1 — Quick Wins (1-2 weeks)
 > Goal: Core UX improvements that make the existing product stickier
 
-- [ ] 1.1 Full-text search
-- [ ] 2.1 Bookmarks / saved articles
-- [ ] 2.5 Estimated reading time
-- [ ] 6.1 Focus mode (time filters)
-- [ ] 6.6 Reading history
-- [ ] 1.5 Date picker filter
-- [ ] 6.2 Poll frequency control
+- [*] 1.1 Full-text search
+- [*] 2.1 Bookmarks / saved articles
+- [*] 2.5 Estimated reading time
+- [*] 6.1 Focus mode (time filters)
+- [*] 6.6 Reading history
+- [*] 1.5 Date picker filter
+- [*] 6.2 Poll frequency control
 
 ### Phase 2 — Engagement (2-4 weeks)
 > Goal: Features that bring users back daily
 
-- [ ] 2.6 Reading mode / article preview
-- [ ] 5.3 Live ticker bar
-- [ ] 2.3 Article sharing
+- [*] 2.6 Reading mode / article preview
+- [*] 5.3 Live ticker bar
+- [*] 2.3 Article sharing
 - [ ] 6.4 Keyboard shortcuts
 - [ ] 6.5 Mute keywords
-- [ ] 7.2 Sound alerts for breaking news
+- [*] 7.2 Sound alerts for breaking news
 
 ### Phase 3 — Infrastructure (4-6 weeks)
 > Goal: Lay the foundation for advanced features

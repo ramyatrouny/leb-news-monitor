@@ -170,7 +170,16 @@ function parseFeedItems(feed: (typeof RSS_FEEDS)[number], parsed: { items?: Pars
         item.contentSnippet?.slice(0, 200) ??
         item.content?.replace(/<[^>]*>/g, "").slice(0, 200) ??
         "",
-      pubDate: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
+      /**
+       * Use publication date from RSS feed (isoDate or pubDate)
+       * Never fall back to current time, as this would make old articles appear fresh
+       * If no date is available, use a very old date (epoch + 1 year) to push undated articles to bottom
+       */
+      pubDate:
+        item.isoDate ??
+        item.pubDate ??
+        // Fallback to early date (1971) to show undated articles at bottom
+        new Date(1971, 0, 1).toISOString(),
       source: feed.name,
       sourceColor: feed.color,
       sourceCategory: feed.category,
